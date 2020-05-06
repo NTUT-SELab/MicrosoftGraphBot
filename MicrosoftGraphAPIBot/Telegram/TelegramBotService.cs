@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MicrosoftGraphAPIBot.Models;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,10 +14,11 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly ILogger logger;
         private readonly TelegramHandler telegramHandler;
 
-        public TelegramBotService(ILogger<TelegramBotService> logger, TelegramHandler telegramHandler)
+        public TelegramBotService(ILogger<TelegramBotService> logger, TelegramHandler telegramHandler, BotDbContext botDbContext)
         {
             this.logger = logger;
             this.telegramHandler = telegramHandler;
+            botDbContext.Database.EnsureCreated();
         }
 
         /// <summary>

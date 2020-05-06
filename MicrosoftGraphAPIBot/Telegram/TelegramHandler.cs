@@ -58,6 +58,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             botClient.StopReceiving();
             botClient.OnMessage -= BotOnMessageReceived;
             botClient.OnMessageEdited -= BotOnMessageReceived;
+
             logger.LogInformation("停止接收 Bot 的訊息");
         }
 
@@ -72,6 +73,8 @@ namespace MicrosoftGraphAPIBot.Telegram
             if (message == null || message.Type != MessageType.Text)
                 return;
 
+            logger.LogDebug("User Id: {0}", message.Chat.Id);
+
             switch (message.Text.Split(' ').First())
             {
                 // Send inline keyboard
@@ -80,6 +83,9 @@ namespace MicrosoftGraphAPIBot.Telegram
                     break;
                 case "/help":
                     await Help(message);
+                    break;
+                default:
+                    await Defult(message);
                     break;
             }
         }
@@ -114,6 +120,19 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Join('\n', result)
+            );
+        }
+
+        /// <summary>
+        /// 處理預設指令以外的事件
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task Defult(Message message)
+        {
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username)
             );
         }
     }
