@@ -12,7 +12,6 @@ namespace MicrosoftGraphAPIBot
     {
         static void Main(string[] args)
         {
-
             CreateHostBuilder(args).Build().Run();
         }
 

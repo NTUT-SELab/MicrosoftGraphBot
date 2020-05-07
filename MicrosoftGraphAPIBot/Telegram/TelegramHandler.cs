@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MicrosoftGraphAPIBot.MicrosoftGraph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,7 @@ using Telegram.Bot;
 using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MicrosoftGraphAPIBot.Telegram
 {
@@ -19,7 +21,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly ILogger logger;
         private readonly IConfiguration configuration;
         private readonly ITelegramBotClient botClient;
-        private readonly (string, string)[] menu;
+        private readonly Dictionary<string, (string, Func<Message, Task>)> menu;
 
         /// <summary>
         /// Create a new TelegramHandler instance.
@@ -32,9 +34,10 @@ namespace MicrosoftGraphAPIBot.Telegram
             this.configuration = configuration;
             botClient = new TelegramBotClient(this.configuration["Telegram:Token"]);
 
-            menu = new (string, string)[]
+            menu = new Dictionary<string, (string, Func<Message, Task>)>
             {
-                ("/help", "指令選單")
+                { "/help", ("指令選單", Help) },
+                { "/bind", ("帳號綁定", RegisterApp) }
             };
         }
 
@@ -75,19 +78,20 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             logger.LogDebug("User Id: {0}", message.Chat.Id);
 
-            switch (message.Text.Split(' ').First())
-            {
-                // Send inline keyboard
-                case "/start":
-                    await Start(message);
-                    break;
-                case "/help":
-                    await Help(message);
-                    break;
-                default:
-                    await Defult(message);
-                    break;
-            }
+            string userMessage = message.Text.Split(' ').First();
+
+            if (menu.ContainsKey(userMessage))
+                await menu[userMessage].Item2.Invoke(message);
+            else
+                switch (userMessage)
+                {
+                    case "/start":
+                        await Start(message);
+                        break;
+                    default:
+                        await Defult(message);
+                        break;
+                }
         }
 
         /// <summary>
@@ -115,11 +119,26 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
             List<string> result = new List<string> { "指令選單:", ""};
-            result.AddRange(menu.Select(value => $"{value.Item1, -15} {value.Item2}"));
+            result.AddRange(menu.Select(dictionary => $"{dictionary.Key, -15} {dictionary.Value.Item1}"));
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Join('\n', result)
+            );
+        }
+
+        /// <summary>
+        /// 註冊新的應用程式到 Azure
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task RegisterApp(Message message)
+        {
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: string.Format("註冊應用程式: [Get an app ID and secret]({0})", BindHandler.AppRegistrationUrl),
+                ParseMode.MarkdownV2,
+                replyMarkup: new ForceReplyMarkup()
             );
         }
 
