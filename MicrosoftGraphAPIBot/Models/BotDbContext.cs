@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MicrosoftGraphAPIBot.Models
 {
@@ -11,6 +9,7 @@ namespace MicrosoftGraphAPIBot.Models
         { 
         }
 
-        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<TelegramUser> TelegramUsers { get; set; }
+        public virtual DbSet<AzureApp> AzureApps { get; set; }
     }
 }

@@ -7,6 +7,8 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Collections.Specialized;
 using System.Threading.Tasks;
+using MicrosoftGraphAPIBot.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
@@ -14,6 +16,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         private static readonly string appName = Guid.NewGuid().ToString();
         private const string appUrl = "https://localhost:44375/";
+        private readonly BotDbContext db;
 
         public static string AppRegistrationUrl { 
             get {
@@ -21,6 +24,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 string deeplink = string.Format("/quickstart/graphIO?publicClientSupport=false&appName={0}&redirectUrl={1}&allowImplicitFlow=true&ru=", appName, appUrl) + HttpUtility.UrlEncode(ru);
                 return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
             } }
+
+        public BindHandler(BotDbContext botDbContext)
+        {
+            this.db = botDbContext;
+        }
 
         /// <summary>
         /// 註冊 Azure 應用程式
@@ -34,12 +42,30 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             if (!IsValidEmail(email))
                 throw new Exception("信箱格式錯誤");
-            if (!Guid.TryParse(clientId, out _))
+            if (!Guid.TryParse(clientId, out Guid appId))
                 throw new Exception("應用程式 Client Id 格式錯誤");
             if (!await IsValidApplicationAsync(email, clientId, clientSecret))
                 throw new Exception("無效的 Azure 應用程式");
 
-            // do something
+            // 寫入資料庫
+            var telegramUser = db.TelegramUsers.Find(message.Chat.Id);
+            if (telegramUser is null)
+            {
+                telegramUser = new TelegramUser { Id = message.Chat.Id, UserName = message.Chat.Username };
+                db.TelegramUsers.Add(telegramUser);
+            }
+            db.AzureApps.Add(new AzureApp { 
+                Id = appId,
+                Secrets = clientId,
+                TelegramUser = telegramUser
+            });
+
+            // https://docs.microsoft.com/zh-tw/ef/core/saving/explicit-values-generated-properties#explicit-values-into-sql-server-identity-columns
+            await db.Database.OpenConnectionAsync();
+            db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers ON");
+            db.SaveChanges();
+            db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
+            await db.Database.CloseConnectionAsync();
         }
 
         /// <summary>
