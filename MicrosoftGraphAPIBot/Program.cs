@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using MicrosoftGraphAPIBot.Telegram;
-using System.Linq;
 using Telegram.Bot;
 
 namespace MicrosoftGraphAPIBot

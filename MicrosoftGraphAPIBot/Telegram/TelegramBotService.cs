@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.Models;
 using System;
@@ -21,7 +22,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             this.telegramHandler = telegramHandler;
             try
             {
-                botDbContext.Database.EnsureCreated();
+                botDbContext.Database.Migrate();
             }
             catch(Exception ex)
             {

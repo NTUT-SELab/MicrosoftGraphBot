@@ -1,5 +1,6 @@
 ﻿using MicrosoftGraphAPIBot.MicrosoftGraph;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -18,14 +19,15 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task RegisterApp(Message message)
         {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Format("註冊應用程式: [Get an app ID and secret]({0})", BindHandler.AppRegistrationUrl),
                 ParseMode.MarkdownV2
             );
 
-            string methodName = GetAsyncMethodName(MethodBase.GetCurrentMethod());
-            string command = commands.First(c => c.Value.Item2.Method.Name == methodName).Key;
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
@@ -43,12 +45,13 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task ReplayRegisterApp(Message message)
         {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             try
             {
                 string[] userMessages = message.Text.Split(' ');
                 if (userMessages.Length != 3)
                     throw new Exception("輸入格式錯誤");
-                await bindHandler.RegAppAsync(message, userMessages[0], userMessages[1], userMessages[2]);
+                await bindHandler.RegAppAsync(message.Chat.Id, message.Chat.Username, userMessages[0], userMessages[1], userMessages[2]);
 
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
@@ -62,24 +65,89 @@ namespace MicrosoftGraphAPIBot.Telegram
                     text: ex.Message
                     );
             }
+        }
+
+        /// <summary>
+        /// 刪除本地應用程式紀錄，並回傳 azure 應用程式網頁，讓使用者手動刪除應用程式
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task DeleteApp(Message message)
+        {
 
         }
 
         /// <summary>
-        /// 取得正確的 Method 名稱
+        /// 查詢已註冊的azure應用程式
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task QueryApp(Message message)
+        {
+
+        }
+
+        /// <summary>
+        /// 綁定 o365 使用者授權到指定的應用程式
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task BindUserAuth(Message message)
+        {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+
+            IReadOnlyList<Guid> appId = await bindHandler.GetAppsIdAsync(message.Chat.Id);
+
+            IEnumerable<InlineKeyboardButton> keyboardButtons = appId.Select(Id => new InlineKeyboardButton { Text = Id.ToString(), CallbackData = Id.ToString() });
+            var keyboardMarkup = new InlineKeyboardMarkup(keyboardButtons);
+
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
+
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: command + "\n" +
+                    "選擇要授權的應用程式",
+                replyMarkup: keyboardMarkup
+            );
+        }
+
+        /// <summary>
+        /// 刪除指定應用程式的 o365 使用者授權
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task UnbindUserAuth(Message message)
+        {
+
+        }
+
+        /// <summary>
+        /// 查詢使用者的所有 o365 授權
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task QueryUserAuth(Message message)
+        {
+
+        }
+
+        /// <summary>
+        /// 取得非同步 Method 對應的指令
         /// 
         /// 非同步 Method 名稱會包含 Thread Id
         /// </summary>
         /// <param name="asyncMethod"> Method </param>
         /// <returns></returns>
-        private string GetAsyncMethodName(MethodBase asyncMethod)
+        private string GetAsyncMethodCommand(MethodBase asyncMethod)
         {
             string asyncMethodName = asyncMethod.DeclaringType.Name;
             int first = asyncMethodName.IndexOf("<") + "<".Length;
             int last = asyncMethodName.LastIndexOf(">");
             string methodName = asyncMethodName[first..last];
 
-            return methodName;
+            string command = commands.First(c => c.Value.Item2.Method.Name == methodName).Key;
+
+            return command;
         }
     }
 }

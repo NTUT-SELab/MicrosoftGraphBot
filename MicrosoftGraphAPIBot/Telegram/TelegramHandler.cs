@@ -41,8 +41,13 @@ namespace MicrosoftGraphAPIBot.Telegram
             {
                 { "/start", ("", Start)},
                 { "/help", ("指令選單", Help) },
-                { "/bind", ("帳號綁定", Bind) },
-                { "/regApp", ("應用程式註冊", RegisterApp) }
+                { "/bind", ("綁定帳號", Bind) },
+                { "/regApp", ("註冊應用程式", RegisterApp) },
+                { "/deleteApp", ("刪除應用程式", DeleteApp)},
+                { "/queryApp", ("查詢應用程式", QueryApp) },
+                { "/bindAuth", ("綁定使用者授權到指定應用程式", BindUserAuth) },
+                { "/unbindAuth", ("解除綁定使用者授權", UnbindUserAuth) },
+                { "/queryAuth", ("查詢使用者授權", QueryUserAuth) }
             };
 
             replayCommands = new Dictionary<string, Func<Message, Task>>()
@@ -115,6 +120,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Start(Message message)
         {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: configuration["JoinBotMessage"]
@@ -152,7 +158,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
             List<string> result = new List<string> { "綁定指令選單:", "" };
-            IEnumerable<(string, string)> menu = GenerateBindCommands();
+            IEnumerable<(string, string)> menu = await GenerateBindCommandsAsync(message.Chat.Id);
             result.AddRange(menu.Select(command => $"{command.Item1,-15} {command.Item2}"));
 
             await botClient.SendTextMessageAsync(
@@ -168,6 +174,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Defult(Message message)
         {
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username)
@@ -183,9 +190,12 @@ namespace MicrosoftGraphAPIBot.Telegram
                 .Select(command => (command.Key, command.Value.Item1));
         }
 
-        private IEnumerable<(string, string)> GenerateBindCommands()
+        private async Task<IEnumerable<(string, string)>> GenerateBindCommandsAsync(long userId)
         {
             List<string> Menus = new List<string> { "/regApp" };
+
+            if (await bindHandler.AppCountAsync(userId) > 0)
+                Menus.AddRange(new List<string> { "/deleteApp", "/queryApp", "/queryApp", "/bindAuth" });
 
             return commands.Where(command => Menus.Contains(command.Key))
                 .Select(command => (command.Key, command.Value.Item1));

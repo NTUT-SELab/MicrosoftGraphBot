@@ -9,6 +9,9 @@ using System.Collections.Specialized;
 using System.Threading.Tasks;
 using MicrosoftGraphAPIBot.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
@@ -33,12 +36,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <summary>
         /// 註冊 Azure 應用程式
         /// </summary>
-        /// <param name="message"> Telegram message object </param>
+        /// <param name="userId"> Telegram user id </param>
+        /// <param name="userName"> Telegram user name </param>
         /// <param name="email"> 應用程式持有者的 email </param>
         /// <param name="clientId"> Application (client) ID </param>
         /// <param name="clientSecret"> Client secrets </param>
         /// <returns></returns>
-        public async Task RegAppAsync(Message message, string email, string clientId, string clientSecret)
+        public async Task RegAppAsync(long userId, string userName, string email, string clientId, string clientSecret)
         {
             if (!IsValidEmail(email))
                 throw new Exception("信箱格式錯誤");
@@ -48,10 +52,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 throw new Exception("無效的 Azure 應用程式");
 
             // 寫入資料庫
-            var telegramUser = db.TelegramUsers.Find(message.Chat.Id);
+            var telegramUser = db.TelegramUsers.Find(userId);
             if (telegramUser is null)
             {
-                telegramUser = new TelegramUser { Id = message.Chat.Id, UserName = message.Chat.Username };
+                telegramUser = new TelegramUser { Id = userId, UserName = userName };
                 db.TelegramUsers.Add(telegramUser);
             }
             db.AzureApps.Add(new AzureApp { 
@@ -66,6 +70,31 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             db.SaveChanges();
             db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
             await db.Database.CloseConnectionAsync();
+        }
+
+        /// <summary>
+        /// 取得指定 Telegram 使用者註冊的應用程式數量
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <returns> 應用程式數量 </returns>
+        public async Task<int> AppCountAsync(long userId)
+        {
+            return await db.AzureApps
+                .Where(app => app.TelegramUser.Id == userId)
+                .CountAsync();
+        }
+
+        /// <summary>
+        /// 取得指定 Telegram 使用者註冊的應用程式 Id
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <returns> 應用程式Guid </returns>
+        public async Task<IReadOnlyList<Guid>> GetAppsIdAsync(long userId)
+        {
+            return await db.AzureApps
+                .Where(app => app.TelegramUser.Id == userId)
+                .Select(app => app.Id)
+                .ToListAsync();
         }
 
         /// <summary>
