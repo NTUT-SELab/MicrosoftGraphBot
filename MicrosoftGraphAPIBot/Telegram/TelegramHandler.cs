@@ -94,13 +94,12 @@ namespace MicrosoftGraphAPIBot.Telegram
             logger.LogDebug("User Id: {0}", message.Chat.Id);
 
 
-            if (message.ReplyToMessage != null)
-                if (message.ReplyToMessage.From.Id == botClient.BotId)
-                {
-                    string replyCommand = message.ReplyToMessage.Text.Split('\n').First();
-                    await replayCommands[replyCommand].Invoke(message);
-                    return;
-                }
+            if (message.ReplyToMessage != null && message.ReplyToMessage.From.Id == botClient.BotId)
+            {
+                string replyCommand = message.ReplyToMessage.Text.Split('\n').First();
+                await replayCommands[replyCommand].Invoke(message);
+                return;
+            }
 
             string command = message.Text.Split(' ').First();
 

@@ -9,7 +9,7 @@ using Telegram.Bot;
 
 namespace MicrosoftGraphAPIBot
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {

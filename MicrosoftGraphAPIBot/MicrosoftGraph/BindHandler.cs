@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Text;
 using System.Web;
-using Telegram.Bot.Types;
 using System.Net.Mail;
 using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Collections.Specialized;
 using System.Threading.Tasks;
 using MicrosoftGraphAPIBot.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+using System.Net.Http;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
@@ -45,11 +41,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public async Task RegAppAsync(long userId, string userName, string email, string clientId, string clientSecret)
         {
             if (!IsValidEmail(email))
-                throw new Exception("信箱格式錯誤");
+                throw new InvalidOperationException("信箱格式錯誤");
             if (!Guid.TryParse(clientId, out Guid appId))
-                throw new Exception("應用程式 Client Id 格式錯誤");
+                throw new InvalidOperationException("應用程式 Client Id 格式錯誤");
             if (!await IsValidApplicationAsync(email, clientId, clientSecret))
-                throw new Exception("無效的 Azure 應用程式");
+                throw new InvalidOperationException("無效的 Azure 應用程式");
 
             // 寫入資料庫
             var telegramUser = db.TelegramUsers.Find(userId);
@@ -102,7 +98,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="email"> 應用程式持有者的 email </param>
         /// <returns> True 為有效的 email 格式，False 為無效的 email 格式 </returns>
-        private bool IsValidEmail(string email)
+        private static bool IsValidEmail(string email)
         {
             try
             {
@@ -117,18 +113,18 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
         /// <summary>
         /// 驗證 Azure 應用程式是否有效
-        /// 
+        ///
         /// https://docs.microsoft.com/en-us/azure/media-services/previous/media-services-rest-connect-with-aad#get-the-access-token-using-postman
         /// </summary>
         /// <param name="email"> 應用程式持有者的 email </param>
         /// <param name="clientId"> Application (client) ID </param>
         /// <param name="clientSecret"> Client secrets </param>
         /// <returns> True 為有效的 Azure 應用程式，False 為無效的 Azure 應用程式 </returns>
-        private async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
+        private static async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
         {
-            using WebClient webClient = new WebClient();
+            using HttpClient httpClient = new HttpClient();
 
-            NameValueCollection body = new NameValueCollection()
+            Dictionary<string, string> body = new Dictionary<string, string>()
             {
                 { "grant_type", "client_credentials" },
                 { "client_id", clientId },
@@ -136,15 +132,18 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 { "resource", "https://rest.media.azure.net" }
             };
 
+            var formData = new FormUrlEncodedContent(body);
             string domain = email.Split('@')[1];
             string url = string.Format("https://login.microsoftonline.com/{0}/oauth2/token", domain);
-            byte[] buffer = await webClient.UploadValuesTaskAsync(url, body);
-            string json = Encoding.UTF8.GetString(buffer);
+            var buffer = await httpClient.PostAsync(url, formData);
 
+            string json = await buffer.Content.ReadAsStringAsync();
             JObject jObject = JObject.Parse(json);
-
             if (jObject.Property("access_token") != null)
+            {
                 return true;
+            }
+
             return false;
         }
     }

@@ -50,7 +50,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             {
                 string[] userMessages = message.Text.Split(' ');
                 if (userMessages.Length != 3)
-                    throw new Exception("輸入格式錯誤");
+                    throw new InvalidOperationException("輸入格式錯誤");
                 await bindHandler.RegAppAsync(message.Chat.Id, message.Chat.Username, userMessages[0], userMessages[1], userMessages[2]);
 
                 await botClient.SendTextMessageAsync(
