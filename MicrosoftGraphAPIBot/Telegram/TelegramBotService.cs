@@ -1,8 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MicrosoftGraphAPIBot.Models;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,24 +8,21 @@ namespace MicrosoftGraphAPIBot.Telegram
     /// <summary>
     /// Telegram Bot 服務
     /// </summary>
-    internal class TelegramBotService : IHostedService
+    public class TelegramBotService : IHostedService
     {
         private readonly ILogger logger;
         private readonly TelegramHandler telegramHandler;
+        private bool isStart = false;
 
-        public TelegramBotService(IHost host,ILogger<TelegramBotService> logger, TelegramHandler telegramHandler, BotDbContext botDbContext)
+        /// <summary>
+        /// Create a new TelegramBotService instance.
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="telegramHandler"></param>
+        public TelegramBotService(ILogger<TelegramBotService> logger, TelegramHandler telegramHandler)
         {
             this.logger = logger;
             this.telegramHandler = telegramHandler;
-            try
-            {
-                botDbContext.Database.Migrate();
-            }
-            catch(Exception ex)
-            {
-                logger.LogError(ex.Message);
-                host.StopAsync();
-            }
         }
 
         /// <summary>
@@ -39,8 +33,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         public Task StartAsync(CancellationToken cancellationToken)
         {
             telegramHandler.StartReceiving();
+            isStart = true;
             logger.LogInformation("Telegram bot service is starting.");
-            
             return Task.CompletedTask;
         }
 
@@ -51,7 +45,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            telegramHandler.StopReceiving();
+            if (isStart)
+                telegramHandler.StopReceiving();
             logger.LogInformation("Telegram bot service is stopping.");
 
             return Task.CompletedTask;

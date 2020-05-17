@@ -21,38 +21,34 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly IConfiguration configuration;
         private readonly ITelegramBotClient botClient;
         private readonly BindHandler bindHandler;
-        private readonly Dictionary<string, (string, Func<Message, Task>)> commands;
-        private readonly Dictionary<string, Func<Message, Task>> replayCommands;
+        private readonly TelegramCommandGenerator commandGenerator;
+        private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>)> Controller;
 
         /// <summary>
         /// Create a new TelegramHandler instance.
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
-        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, BindHandler bindHandler)
+        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, BindHandler bindHandler, TelegramCommandGenerator commandGenerator)
         {
             this.logger = logger;
             this.configuration = configuration;
             this.botClient = botClient;
             this.bindHandler = bindHandler;
+            this.commandGenerator = commandGenerator;
 
-
-            commands = new Dictionary<string, (string, Func<Message, Task>)>
+            // key = 指令, value = (指令對應的方法, 使用者回復指令訊息對應的方法)
+            Controller = new Dictionary<string, (Func<Message, Task>, Func<Message, Task>)>
             {
-                { "/start", ("", Start)},
-                { "/help", ("指令選單", Help) },
-                { "/bind", ("綁定帳號", Bind) },
-                { "/regApp", ("註冊應用程式", RegisterApp) },
-                { "/deleteApp", ("刪除應用程式", DeleteApp)},
-                { "/queryApp", ("查詢應用程式", QueryApp) },
-                { "/bindAuth", ("綁定使用者授權到指定應用程式", BindUserAuth) },
-                { "/unbindAuth", ("解除綁定使用者授權", UnbindUserAuth) },
-                { "/queryAuth", ("查詢使用者授權", QueryUserAuth) }
-            };
-
-            replayCommands = new Dictionary<string, Func<Message, Task>>()
-            {
-                { "/regApp", ReplayRegisterApp }
+                { TelegramCommand.Start, (Start, null)},
+                { TelegramCommand.Help, (Help, null) },
+                { TelegramCommand.Bind, (Bind, null) },
+                { TelegramCommand.RegApp, (RegisterApp, ReplayRegisterApp) },
+                { TelegramCommand.DeleteApp, (DeleteApp, null)},
+                { TelegramCommand.QueryApp, (QueryApp, null) },
+                { TelegramCommand.BindAuth, (BindUserAuth, null) },
+                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null) },
+                { TelegramCommand.QueryAuth, (QueryUserAuth, null) }
             };
         }
 
@@ -92,24 +88,24 @@ namespace MicrosoftGraphAPIBot.Telegram
                 return;
 
             logger.LogDebug("User Id: {0}", message.Chat.Id);
-
+            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
             if (message.ReplyToMessage != null && message.ReplyToMessage.From.Id == botClient.BotId)
             {
                 string replyCommand = message.ReplyToMessage.Text.Split('\n').First();
-                await replayCommands[replyCommand].Invoke(message);
+                await Controller[replyCommand].Item2.Invoke(message).ConfigureAwait(false);
                 return;
             }
 
             string command = message.Text.Split(' ').First();
 
-            if (commands.ContainsKey(command))
+            if (Controller.ContainsKey(command))
             {
-                await commands[command].Item2.Invoke(message);
+                await Controller[command].Item1.Invoke(message).ConfigureAwait(false);
                 return;
             }
                 
-            await Defult(message);
+            await Defult(message).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -119,7 +115,6 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Start(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: configuration["JoinBotMessage"]
@@ -135,10 +130,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Help(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
-
             List<string> result = new List<string> { "指令選單:", ""};
-            IEnumerable<(string, string)> menu = GenerateMenuCommands();
+            IEnumerable<(string, string)> menu = commandGenerator.GenerateMenuCommands();
             result.AddRange(menu.Select(command => $"{command.Item1, -15} {command.Item2}"));
 
             await botClient.SendTextMessageAsync(
@@ -154,10 +147,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Bind(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
-
             List<string> result = new List<string> { "綁定指令選單:", "" };
-            IEnumerable<(string, string)> menu = await GenerateBindCommandsAsync(message.Chat.Id);
+            IEnumerable<(string, string)> menu = await commandGenerator.GenerateBindCommandsAsync(message.Chat.Id);
             result.AddRange(menu.Select(command => $"{command.Item1,-15} {command.Item2}"));
 
             await botClient.SendTextMessageAsync(
@@ -173,32 +164,10 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Defult(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username)
             );
         }
-
-        #region command prompt
-        private IEnumerable<(string, string)> GenerateMenuCommands()
-        {
-            List<string> Menus = new List<string> { "/help", "/bind" };
-
-            return commands.Where(command => Menus.Contains(command.Key))
-                .Select(command => (command.Key, command.Value.Item1));
-        }
-
-        private async Task<IEnumerable<(string, string)>> GenerateBindCommandsAsync(long userId)
-        {
-            List<string> Menus = new List<string> { "/regApp" };
-
-            if (await bindHandler.AppCountAsync(userId) > 0)
-                Menus.AddRange(new List<string> { "/deleteApp", "/queryApp", "/queryApp", "/bindAuth" });
-
-            return commands.Where(command => Menus.Contains(command.Key))
-                .Select(command => (command.Key, command.Value.Item1));
-        }
-        #endregion
     }
 }

@@ -11,11 +11,15 @@ using System.Net.Http;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
+    /// <summary>
+    /// 處理 o365 帳號綁定相關行為
+    /// </summary>
     public class BindHandler
     {
         private static readonly string appName = Guid.NewGuid().ToString();
         private const string appUrl = "https://localhost:44375/";
         private readonly BotDbContext db;
+        private readonly HttpClient httpClient;
 
         public static string AppRegistrationUrl { 
             get {
@@ -24,9 +28,18 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
             } }
 
-        public BindHandler(BotDbContext botDbContext)
+        /// <summary>
+        /// Create a new BindHandler instance.
+        /// </summary>
+        /// <param name="botDbContext"> Data base </param>
+        /// <param name="httpClient"> 
+        /// Provides a base class for sending HTTP requests and receiving HTTP responses
+        /// from a resource identified by a URI.
+        /// </param>
+        public BindHandler(BotDbContext botDbContext, HttpClient httpClient)
         {
             this.db = botDbContext;
+            this.httpClient = httpClient;
         }
 
         /// <summary>
@@ -120,10 +133,8 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="clientId"> Application (client) ID </param>
         /// <param name="clientSecret"> Client secrets </param>
         /// <returns> True 為有效的 Azure 應用程式，False 為無效的 Azure 應用程式 </returns>
-        private static async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
+        private async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
         {
-            using HttpClient httpClient = new HttpClient();
-
             Dictionary<string, string> body = new Dictionary<string, string>()
             {
                 { "grant_type", "client_credentials" },

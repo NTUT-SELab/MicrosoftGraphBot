@@ -19,7 +19,6 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task RegisterApp(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Format("註冊應用程式: [Get an app ID and secret]({0})", BindHandler.AppRegistrationUrl),
@@ -45,7 +44,6 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task ReplayRegisterApp(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             try
             {
                 string[] userMessages = message.Text.Split(' ');
@@ -94,8 +92,6 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task BindUserAuth(Message message)
         {
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
-
             IReadOnlyList<Guid> appId = await bindHandler.GetAppsIdAsync(message.Chat.Id);
 
             IEnumerable<InlineKeyboardButton> keyboardButtons = appId.Select(Id => new InlineKeyboardButton { Text = Id.ToString(), CallbackData = Id.ToString() });
@@ -145,7 +141,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             int last = asyncMethodName.LastIndexOf(">");
             string methodName = asyncMethodName[first..last];
 
-            string command = commands.First(c => c.Value.Item2.Method.Name == methodName).Key;
+            string command = Controller.First(c => c.Value.Item1.Method.Name == methodName).Key;
 
             return command;
         }

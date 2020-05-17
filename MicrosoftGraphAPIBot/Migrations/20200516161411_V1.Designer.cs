@@ -10,8 +10,8 @@ using MicrosoftGraphAPIBot.Models;
 namespace MicrosoftGraphAPIBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20200514142158_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20200516161411_V1")]
+    partial class V1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
