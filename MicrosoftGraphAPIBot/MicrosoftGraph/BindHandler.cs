@@ -17,14 +17,15 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     public class BindHandler
     {
         private static readonly string appName = Guid.NewGuid().ToString();
-        private const string appUrl = "https://localhost:44375/";
+        public const string appUrl = "https://localhost:44375/";
         private readonly BotDbContext db;
         private readonly HttpClient httpClient;
+        private const string Scope = "offline_access user.read";
 
         public static string AppRegistrationUrl { 
             get {
-                string ru = string.Format("https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={0}&platform=option-windowsuniversal", appUrl);
-                string deeplink = string.Format("/quickstart/graphIO?publicClientSupport=false&appName={0}&redirectUrl={1}&allowImplicitFlow=true&ru=", appName, appUrl) + HttpUtility.UrlEncode(ru);
+                string ru = $"https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={appUrl}&platform=option-windowsuniversal";
+                string deeplink = $"/quickstart/graphIO?publicClientSupport=false&appName={appName}&redirectUrl={appUrl}&allowImplicitFlow=true&ru=" + HttpUtility.UrlEncode(ru);
                 return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
             } }
 
@@ -40,6 +41,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             this.db = botDbContext;
             this.httpClient = httpClient;
+        }
+
+        public async Task<string> GetAuthUrlAsync(Guid clientId)
+        {
+            string email = await db.AzureApps.Where(app => app.Id == clientId).Select(app => app.Email).FirstAsync();
+            string url = $"https://login.microsoftonline.com/{GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId.ToString()}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(Scope)}";
+            return url;
         }
 
         /// <summary>
@@ -70,6 +78,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             db.AzureApps.Add(new AzureApp { 
                 Id = appId,
                 Secrets = clientId,
+                Email = email,
                 TelegramUser = telegramUser
             });
 
@@ -98,12 +107,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
         /// <returns> 應用程式Guid </returns>
-        public async Task<IReadOnlyList<Guid>> GetAppsIdAsync(long userId)
+        public async Task<IEnumerable<(Guid, DateTime)>> GetAppsInfoAsync(long userId)
         {
-            return await db.AzureApps
+            var appInfo = await db.AzureApps
                 .Where(app => app.TelegramUser.Id == userId)
-                .Select(app => app.Id)
+                .Select(app => new { app.Id, app.Date })
                 .ToListAsync();
+            return appInfo.Select(app => (app.Id, app.Date));
         }
 
         /// <summary>
@@ -144,18 +154,26 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             };
 
             var formData = new FormUrlEncodedContent(body);
-            string domain = email.Split('@')[1];
-            string url = string.Format("https://login.microsoftonline.com/{0}/oauth2/token", domain);
+            string tenant = GetTenant(email);
+            string url = $"https://login.microsoftonline.com/{tenant}/oauth2/token";
             var buffer = await httpClient.PostAsync(url, formData);
 
             string json = await buffer.Content.ReadAsStringAsync();
             JObject jObject = JObject.Parse(json);
             if (jObject.Property("access_token") != null)
-            {
                 return true;
-            }
 
             return false;
+        }
+
+        /// <summary>
+        /// 取得 Email 的 UPN 尾碼
+        /// </summary>
+        /// <param name="email"> 應用程式持有者的 email </param>
+        /// <returns> UPN 尾碼 </returns>
+        private static string GetTenant(string email)
+        {
+            return email.Split('@')[1];
         }
     }
 }

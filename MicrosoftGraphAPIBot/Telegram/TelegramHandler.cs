@@ -22,7 +22,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly ITelegramBotClient botClient;
         private readonly BindHandler bindHandler;
         private readonly TelegramCommandGenerator commandGenerator;
-        private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>)> Controller;
+        private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)> Controller;
 
         /// <summary>
         /// Create a new TelegramHandler instance.
@@ -37,18 +37,18 @@ namespace MicrosoftGraphAPIBot.Telegram
             this.bindHandler = bindHandler;
             this.commandGenerator = commandGenerator;
 
-            // key = 指令, value = (指令對應的方法, 使用者回復指令訊息對應的方法)
-            Controller = new Dictionary<string, (Func<Message, Task>, Func<Message, Task>)>
+            // key = 指令, value = (指令對應的方法, 使用者回復指令訊息對應的方法, 使用者回復選擇按鈕對應的方法)
+            Controller = new Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)>
             {
-                { TelegramCommand.Start, (Start, null)},
-                { TelegramCommand.Help, (Help, null) },
-                { TelegramCommand.Bind, (Bind, null) },
-                { TelegramCommand.RegApp, (RegisterApp, ReplayRegisterApp) },
-                { TelegramCommand.DeleteApp, (DeleteApp, null)},
-                { TelegramCommand.QueryApp, (QueryApp, null) },
-                { TelegramCommand.BindAuth, (BindUserAuth, null) },
-                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null) },
-                { TelegramCommand.QueryAuth, (QueryUserAuth, null) }
+                { TelegramCommand.Start, (Start, null, null)},
+                { TelegramCommand.Help, (Help, null, null) },
+                { TelegramCommand.Bind, (Bind, null, null) },
+                { TelegramCommand.RegApp, (RegisterApp, RegisterAppReplay, null) },
+                { TelegramCommand.DeleteApp, (DeleteApp, null, null)},
+                { TelegramCommand.QueryApp, (QueryApp, null, null) },
+                { TelegramCommand.BindAuth, (BindUserAuth, null, BindUserAuthCallback) },
+                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, null) },
+                { TelegramCommand.QueryAuth, (QueryUserAuth, null, null) }
             };
         }
 
@@ -59,6 +59,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             botClient.OnMessage += BotOnMessageReceived;
             botClient.OnMessageEdited += BotOnMessageReceived;
+            botClient.OnCallbackQuery += BotOnCallbackQuery;
             botClient.StartReceiving(Array.Empty<UpdateType>());
 
             logger.LogInformation("開始接收 Bot 的訊息");
@@ -72,6 +73,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             botClient.StopReceiving();
             botClient.OnMessage -= BotOnMessageReceived;
             botClient.OnMessageEdited -= BotOnMessageReceived;
+            botClient.OnCallbackQuery -= BotOnCallbackQuery;
 
             logger.LogInformation("停止接收 Bot 的訊息");
         }
@@ -106,6 +108,23 @@ namespace MicrosoftGraphAPIBot.Telegram
             }
                 
             await Defult(message).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// 處理來自 Bot 的訊息
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="messageEventArgs"></param>
+        private async void BotOnCallbackQuery(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
+        {
+            CallbackQuery callbackQuery = callbackQueryEventArgs.CallbackQuery;
+            await botClient.SendChatActionAsync(callbackQuery.From.Id, ChatAction.Typing);
+
+            if (callbackQuery.Message != null && callbackQuery.Message.From.Id == botClient.BotId)
+            {
+                string callbackCommand = callbackQuery.Message.Text.Split('\n').First();
+                await Controller[callbackCommand].Item3.Invoke(callbackQuery).ConfigureAwait(false);
+            }
         }
 
         /// <summary>

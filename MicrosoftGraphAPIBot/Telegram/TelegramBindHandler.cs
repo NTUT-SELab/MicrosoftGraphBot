@@ -21,7 +21,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: string.Format("註冊應用程式: [Get an app ID and secret]({0})", BindHandler.AppRegistrationUrl),
+                text: $"註冊應用程式: [Get an app ID and secret]({BindHandler.AppRegistrationUrl})",
                 ParseMode.MarkdownV2
             );
 
@@ -32,7 +32,8 @@ namespace MicrosoftGraphAPIBot.Telegram
                 chatId: message.Chat.Id,
                 text: command + "\n" +
                     "[office365帳號] [Application (client) ID] [Client secrets]" + "\n" +
-                    "AAA@BBB.onmicrosoft.com 9a448485-16dd-49c3-b4be-d8b7e138db27 lyfJ7f4k=9:qA?e:huHchb0pcBhMuk@b]",
+                    "範例: AAA@BBB.onmicrosoft.com 9a448485-16dd-49c3-b4be-d8b7e138db27 lyfJ7f4k=9:qA?e:huHchb0pcBhMuk@b]" + "\n" +
+                    "備註: 每個項目請用空格分開",
                 replyMarkup: new ForceReplyMarkup()
             );
         }
@@ -42,7 +43,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
-        private async Task ReplayRegisterApp(Message message)
+        private async Task RegisterAppReplay(Message message)
         {
             try
             {
@@ -63,6 +64,8 @@ namespace MicrosoftGraphAPIBot.Telegram
                     text: ex.Message
                     );
             }
+
+            await Bind(message);
         }
 
         /// <summary>
@@ -92,9 +95,9 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task BindUserAuth(Message message)
         {
-            IReadOnlyList<Guid> appId = await bindHandler.GetAppsIdAsync(message.Chat.Id);
+            IEnumerable<(Guid, DateTime)> appsInfo = await bindHandler.GetAppsInfoAsync(message.Chat.Id);
 
-            IEnumerable<InlineKeyboardButton> keyboardButtons = appId.Select(Id => new InlineKeyboardButton { Text = Id.ToString(), CallbackData = Id.ToString() });
+            IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
             var keyboardMarkup = new InlineKeyboardMarkup(keyboardButtons);
 
             string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
@@ -104,6 +107,33 @@ namespace MicrosoftGraphAPIBot.Telegram
                 text: command + "\n" +
                     "選擇要授權的應用程式",
                 replyMarkup: keyboardMarkup
+            );
+        }
+
+        /// <summary>
+        /// 授權使用者權限
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task BindUserAuthCallback(CallbackQuery callbackQuery)
+        {
+            string authUrl = await bindHandler.GetAuthUrlAsync(Guid.Parse(callbackQuery.Data));
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: $"授權帳號: [授權連結]({authUrl})",
+                ParseMode.MarkdownV2
+            );
+
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: command + "\n" +
+                    "[重新導向的網址] [別名 (用於管理)]" + "\n" +
+                    $"範例: {BindHandler.appUrl}... Auth1" + "\n" +
+                    "備註: 每個項目請用空格分開",
+                replyMarkup: new ForceReplyMarkup()
             );
         }
 
@@ -141,7 +171,9 @@ namespace MicrosoftGraphAPIBot.Telegram
             int last = asyncMethodName.LastIndexOf(">");
             string methodName = asyncMethodName[first..last];
 
-            string command = Controller.First(c => c.Value.Item1.Method.Name == methodName).Key;
+            string command = Controller.First(c => (c.Value.Item1 != null && c.Value.Item1.Method.Name == methodName) ||
+                                                    (c.Value.Item2 != null && c.Value.Item2.Method.Name == methodName) ||
+                                                    (c.Value.Item3 != null && c.Value.Item3.Method.Name == methodName)).Key;
 
             return command;
         }

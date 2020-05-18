@@ -10,5 +10,6 @@ namespace MicrosoftGraphAPIBot.Models
 
         public virtual DbSet<TelegramUser> TelegramUsers { get; set; }
         public virtual DbSet<AzureApp> AzureApps { get; set; }
+        public virtual DbSet<AppAuth> AppAuths { get; set; }
     }
 }
