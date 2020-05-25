@@ -2,3 +2,12 @@
 
 # S1075: URIs should not be hardcoded
 dotnet_diagnostic.S1075.severity = none
+
+# CA2007: 請考慮對等候的工作呼叫 ConfigureAwait
+dotnet_diagnostic.CA2007.severity = none
+
+# CA2227: 集合屬性應為唯讀
+dotnet_diagnostic.CA2227.severity = none
+
+# CA1031: 不要攔截一般例外狀況類型
+dotnet_diagnostic.CA1031.severity = none

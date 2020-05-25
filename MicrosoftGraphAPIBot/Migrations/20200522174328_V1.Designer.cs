@@ -10,7 +10,7 @@ using MicrosoftGraphAPIBot.Models;
 namespace MicrosoftGraphAPIBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20200517170937_V1")]
+    [Migration("20200522174328_V1")]
     partial class V1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,10 @@ namespace MicrosoftGraphAPIBot.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RefreshToken")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Scope")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

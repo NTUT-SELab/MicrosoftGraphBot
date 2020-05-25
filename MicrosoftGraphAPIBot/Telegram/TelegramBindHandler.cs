@@ -22,8 +22,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: $"註冊應用程式: [Get an app ID and secret]({BindHandler.AppRegistrationUrl})",
-                ParseMode.MarkdownV2
-            );
+                ParseMode.MarkdownV2);
 
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
             string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
@@ -34,8 +33,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                     "[office365帳號] [Application (client) ID] [Client secrets]" + "\n" +
                     "範例: AAA@BBB.onmicrosoft.com 9a448485-16dd-49c3-b4be-d8b7e138db27 lyfJ7f4k=9:qA?e:huHchb0pcBhMuk@b]" + "\n" +
                     "備註: 每個項目請用空格分開",
-                replyMarkup: new ForceReplyMarkup()
-            );
+                replyMarkup: new ForceReplyMarkup());
         }
 
         /// <summary>
@@ -54,15 +52,13 @@ namespace MicrosoftGraphAPIBot.Telegram
 
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
-                    text: "應用程式註冊成功"
-                    );
+                    text: "應用程式註冊成功");
             }
             catch(Exception ex)
             {
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
-                    text: ex.Message
-                    );
+                    text: ex.Message);
             }
 
             await Bind(message);
@@ -89,7 +85,9 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
-        /// 綁定 o365 使用者授權到指定的應用程式
+        /// 對指定應用程式取得 o365 帳號授權
+        /// 
+        /// 提供使用者選擇應用程式
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
@@ -106,35 +104,66 @@ namespace MicrosoftGraphAPIBot.Telegram
                 chatId: message.Chat.Id,
                 text: command + "\n" +
                     "選擇要授權的應用程式",
-                replyMarkup: keyboardMarkup
-            );
+                replyMarkup: keyboardMarkup);
         }
 
         /// <summary>
-        /// 授權使用者權限
+        /// 對指定應用程式取得 o365 帳號授權
+        /// 
+        /// 產生授權連結
         /// </summary>
         /// <param name="callbackQuery"> Telegram callbackQuery object </param>
         /// <returns></returns>
         private async Task BindUserAuthCallback(CallbackQuery callbackQuery)
         {
-            string authUrl = await bindHandler.GetAuthUrlAsync(Guid.Parse(callbackQuery.Data));
+            (string, string) auth = await bindHandler.GetAuthUrlAsync(callbackQuery.Data);
 
             await botClient.SendTextMessageAsync(
                 chatId: callbackQuery.From.Id,
-                text: $"授權帳號: [授權連結]({authUrl})",
-                ParseMode.MarkdownV2
-            );
+                text: $"授權帳號: [授權連結]({auth.Item2})",
+                ParseMode.MarkdownV2);
 
             string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
             await botClient.SendTextMessageAsync(
                 chatId: callbackQuery.From.Id,
                 text: command + "\n" +
+                    $"應用程式Id: {auth.Item1}" + "\n" +
                     "[重新導向的網址] [別名 (用於管理)]" + "\n" +
                     $"範例: {BindHandler.appUrl}... Auth1" + "\n" +
                     "備註: 每個項目請用空格分開",
-                replyMarkup: new ForceReplyMarkup()
-            );
+                replyMarkup: new ForceReplyMarkup());
+        }
+
+        /// <summary>
+        /// 對指定應用程式取得 o365 帳號授權
+        /// 
+        /// 綁定授權程序
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task BindUserAuthReplay(Message message)
+        {
+            try
+            {
+                string[] userMessages = message.Text.Split(' ');
+                if (userMessages.Length != 2)
+                    throw new InvalidOperationException("輸入格式錯誤");
+
+                string clientIdItem = message.ReplyToMessage.Text.Split('\n')[1];
+                string clientId = clientIdItem.Split(' ')[1];
+                await bindHandler.BindAuth(clientId, userMessages[0], userMessages[1]);
+
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: "授權綁定成功");
+            }
+            catch(Exception ex)
+            {
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: ex.Message);
+            }
         }
 
         /// <summary>

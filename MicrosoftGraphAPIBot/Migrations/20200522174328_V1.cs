@@ -49,6 +49,7 @@ namespace MicrosoftGraphAPIBot.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     Name = table.Column<string>(nullable: false),
                     RefreshToken = table.Column<string>(nullable: false),
+                    Scope = table.Column<string>(nullable: false),
                     Date = table.Column<DateTime>(nullable: false),
                     AzureAppId = table.Column<Guid>(nullable: false)
                 },

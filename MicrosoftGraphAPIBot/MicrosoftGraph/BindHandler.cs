@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web;
-using System.Net.Mail;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using MicrosoftGraphAPIBot.Models;
@@ -8,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
@@ -43,11 +44,16 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             this.httpClient = httpClient;
         }
 
-        public async Task<string> GetAuthUrlAsync(Guid clientId)
+        /// <summary>
+        /// 取得 o365 授權網址
+        /// </summary>
+        /// <param name="clientId"> Application (client) ID </param>
+        /// <returns></returns>
+        public async Task<(string, string)> GetAuthUrlAsync(string clientId)
         {
-            string email = await db.AzureApps.Where(app => app.Id == clientId).Select(app => app.Email).FirstAsync();
-            string url = $"https://login.microsoftonline.com/{GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId.ToString()}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(Scope)}";
-            return url;
+            string email = await db.AzureApps.Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
+            string url = $"https://login.microsoftonline.com/{GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(Scope)}";
+            return (clientId, url);
         }
 
         /// <summary>
@@ -77,7 +83,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
             db.AzureApps.Add(new AzureApp { 
                 Id = appId,
-                Secrets = clientId,
+                Secrets = clientSecret,
                 Email = email,
                 TelegramUser = telegramUser
             });
@@ -117,18 +123,75 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         }
 
         /// <summary>
+        /// 對指定應用程式取得 o365 帳號授權
+        /// </summary>
+        /// <param name="clientId"> Application (client) ID </param>
+        /// <param name="code"> The authorization_code that the app requested. 
+        /// The app can use the authorization code to request an access token for the target resource. 
+        /// Authorization_codes are very short lived, typically they expire after about 10 minutes. </param>
+        /// <param name="name"> 授權別名 </param>
+        /// <returns></returns>
+        public async Task BindAuth(string clientId, string authResponse, string name)
+        {
+            Uri responseUrl = new Uri(authResponse);
+            string code = HttpUtility.ParseQueryString(responseUrl.Query).Get("code");
+            Guid appId = Guid.Parse(clientId);
+            (string, string) tokens = await GetTokenAsync(appId, code);
+            await GetUserInfoAsync(tokens.Item1);
+
+            db.AppAuths.Add(new AppAuth { 
+                AzureAppId = appId,
+                Name = name,
+                RefreshToken = tokens.Item2,
+                Scope = Scope
+            });
+
+            await db.SaveChangesAsync();
+        }
+
+        /// <summary>
         /// 驗證是否為有效的 email 格式
+        /// 
+        /// https://docs.microsoft.com/zh-tw/dotnet/standard/base-types/how-to-verify-that-strings-are-in-valid-email-format
         /// </summary>
         /// <param name="email"> 應用程式持有者的 email </param>
         /// <returns> True 為有效的 email 格式，False 為無效的 email 格式 </returns>
         private static bool IsValidEmail(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
             try
             {
-                var addr = new MailAddress(email);
-                return addr.Address == email;
+                // Normalize the domain
+                email = Regex.Replace(email, @"(@)(.+)$", DomainMapper,
+                                      RegexOptions.None, TimeSpan.FromMilliseconds(200));
+
+                // Examines the domain part of the email and normalizes it.
+                static string DomainMapper(Match match)
+                {
+                    // Use IdnMapping class to convert Unicode domain names.
+                    var idn = new IdnMapping();
+
+                    // Pull out and process domain name (throws ArgumentException on invalid)
+                    var domainName = idn.GetAscii(match.Groups[2].Value);
+
+                    return match.Groups[1].Value + domainName;
+                }
             }
-            catch
+            catch (Exception)
+            {
+                return false;
+            }
+
+            try
+            {
+                return Regex.IsMatch(email,
+                    @"^(?("")("".+?(?<!\\)""@)|(([0-9a-z]((\.(?!\.))|[-!#\$%&'\*\+/=\?\^`\{\}\|~\w])*)(?<=[0-9a-z])@))" +
+                    @"(?(\[)(\[(\d{1,3}\.){3}\d{1,3}\])|(([0-9a-z][-0-9a-z]*[0-9a-z]*\.)+[a-z0-9][\-a-z0-9]{0,22}[a-z0-9]))$",
+                    RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+            }
+            catch (RegexMatchTimeoutException)
             {
                 return false;
             }
@@ -155,7 +218,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
             var formData = new FormUrlEncodedContent(body);
             string tenant = GetTenant(email);
-            string url = $"https://login.microsoftonline.com/{tenant}/oauth2/token";
+            Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/token");
             var buffer = await httpClient.PostAsync(url, formData);
 
             string json = await buffer.Content.ReadAsStringAsync();
@@ -164,6 +227,55 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Get o365 user token.
+        /// </summary>
+        /// <param name="clientId"> Application (client) ID </param>
+        /// <param name="code"> The authorization_code that the app requested. 
+        /// The app can use the authorization code to request an access token for the target resource. 
+        /// Authorization_codes are very short lived, typically they expire after about 10 minutes. </param>
+        /// <returns> (access token, refresh token) </returns>
+        private async Task<(string, string)> GetTokenAsync(Guid clientId, string code)
+        {
+            AzureApp azureApp = await db.AzureApps.FindAsync(clientId);
+
+            Dictionary<string, string> body = new Dictionary<string, string>()
+            {
+                { "client_id", clientId.ToString() },
+                { "scope", Scope },
+                { "code", code },
+                { "redirect_uri", appUrl },
+                { "grant_type", "authorization_code" },
+                { "client_secret", azureApp.Secrets }
+            };
+
+            var formData = new FormUrlEncodedContent(body);
+            string tenant = GetTenant(azureApp.Email);
+            Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token");
+            var buffer = await httpClient.PostAsync(url, formData);
+
+            string json = await buffer.Content.ReadAsStringAsync();
+            JObject jObject = JObject.Parse(json);
+            if(jObject.Property("access_token") != null)
+                return (jObject["access_token"].ToString(), jObject["refresh_token"].ToString());
+
+            throw new InvalidOperationException("獲取 Token 失敗");
+        }
+
+        private async Task<string> GetUserInfoAsync(string token)
+        {
+            Uri url = new Uri($"https://graph.microsoft.com/v1.0/me ");
+            httpClient.DefaultRequestHeaders.Add("Authorization", token);
+            var buffer = await httpClient.GetAsync(url);
+
+            string json = await buffer.Content.ReadAsStringAsync();
+            JObject jObject = JObject.Parse(json);
+            if (jObject.Property("userPrincipalName") != null)
+                return json;
+
+            throw new InvalidOperationException("獲取 User Info 失敗");
         }
 
         /// <summary>

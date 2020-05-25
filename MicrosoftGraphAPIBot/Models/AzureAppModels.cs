@@ -22,6 +22,10 @@ namespace MicrosoftGraphAPIBot.Models
         public string Email { get; set; }
         [Required]
         public DateTime Date { get; set; }
+
+
+        [Required]
+        public long TelegramUserId { get; set; }
         [Required]
         public virtual TelegramUser TelegramUser { get; set; }
         public ICollection<AppAuth> AppAuths { get; set; }
@@ -43,7 +47,12 @@ namespace MicrosoftGraphAPIBot.Models
         [Required]
         public string RefreshToken { get; set; }
         [Required]
+        public string Scope { get; set; }
+        [Required]
         public DateTime Date { get; set; }
+
+        [Required]
+        public Guid AzureAppId { get; set; }
         [Required]
         public virtual AzureApp AzureApp { get; set; }
     }

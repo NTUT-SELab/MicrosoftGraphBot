@@ -46,7 +46,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.RegApp, (RegisterApp, RegisterAppReplay, null) },
                 { TelegramCommand.DeleteApp, (DeleteApp, null, null)},
                 { TelegramCommand.QueryApp, (QueryApp, null, null) },
-                { TelegramCommand.BindAuth, (BindUserAuth, null, BindUserAuthCallback) },
+                { TelegramCommand.BindAuth, (BindUserAuth, BindUserAuthReplay, BindUserAuthCallback) },
                 { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, null) },
                 { TelegramCommand.QueryAuth, (QueryUserAuth, null, null) }
             };
@@ -136,8 +136,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: configuration["JoinBotMessage"]
-            );
+                text: configuration["JoinBotMessage"]);
 
             await Help(message);
         }
@@ -155,8 +154,7 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: string.Join('\n', result)
-            );
+                text: string.Join('\n', result));
         }
 
         /// <summary>
@@ -172,8 +170,7 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: string.Join('\n', result)
-            );
+                text: string.Join('\n', result));
         }
 
         /// <summary>
@@ -185,8 +182,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username)
-            );
+                text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username));
         }
     }
 }
