@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
@@ -29,6 +28,9 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// </summary>
         /// <param name="logger"></param>
         /// <param name="configuration"></param>
+        /// <param name="botClient"></param>
+        /// <param name="bindHandler"></param>
+        /// <param name="commandGenerator"></param>
         public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, BindHandler bindHandler, TelegramCommandGenerator commandGenerator)
         {
             this.logger = logger;
@@ -53,39 +55,11 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
-        /// 開始接收 Bot 的訊息
-        /// </summary>
-        public void StartReceiving()
-        {
-            botClient.OnMessage += BotOnMessageReceived;
-            botClient.OnMessageEdited += BotOnMessageReceived;
-            botClient.OnCallbackQuery += BotOnCallbackQuery;
-            botClient.StartReceiving(Array.Empty<UpdateType>());
-
-            logger.LogInformation("開始接收 Bot 的訊息");
-        }
-
-        /// <summary>
-        /// 停止接收 Bot 的訊息
-        /// </summary>
-        public void StopReceiving()
-        {
-            botClient.StopReceiving();
-            botClient.OnMessage -= BotOnMessageReceived;
-            botClient.OnMessageEdited -= BotOnMessageReceived;
-            botClient.OnCallbackQuery -= BotOnCallbackQuery;
-
-            logger.LogInformation("停止接收 Bot 的訊息");
-        }
-
-        /// <summary>
         /// 處理來自 Bot 的訊息
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="messageEventArgs"></param>
-        private async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        /// <param name="message"> Telegram message object </param>
+        public async Task MessageReceivedHandler(Message message)
         {
-            Message message = messageEventArgs.Message;
             if (message == null || message.Type != MessageType.Text)
                 return;
 
@@ -95,7 +69,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             if (message.ReplyToMessage != null && message.ReplyToMessage.From.Id == botClient.BotId)
             {
                 string replyCommand = message.ReplyToMessage.Text.Split('\n').First();
-                await Controller[replyCommand].Item2.Invoke(message).ConfigureAwait(false);
+                await Controller[replyCommand].Item2.Invoke(message);
                 return;
             }
 
@@ -103,7 +77,7 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             if (Controller.ContainsKey(command))
             {
-                await Controller[command].Item1.Invoke(message).ConfigureAwait(false);
+                await Controller[command].Item1.Invoke(message);
                 return;
             }
                 
@@ -113,24 +87,25 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <summary>
         /// 處理來自 Bot 的訊息
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="messageEventArgs"></param>
-        private async void BotOnCallbackQuery(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        public async Task CallbackQueryHandler(CallbackQuery callbackQuery)
         {
-            CallbackQuery callbackQuery = callbackQueryEventArgs.CallbackQuery;
+            if (callbackQuery == null)
+                return;
+
             await botClient.SendChatActionAsync(callbackQuery.From.Id, ChatAction.Typing);
 
             if (callbackQuery.Message != null && callbackQuery.Message.From.Id == botClient.BotId)
             {
                 string callbackCommand = callbackQuery.Message.Text.Split('\n').First();
-                await Controller[callbackCommand].Item3.Invoke(callbackQuery).ConfigureAwait(false);
+                await Controller[callbackCommand].Item3.Invoke(callbackQuery);
             }
         }
 
         /// <summary>
         /// 處理 /start 事件
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task Start(Message message)
         {
@@ -144,7 +119,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <summary>
         /// 處理 /help 事件
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task Help(Message message)
         {
@@ -160,7 +135,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <summary>
         /// 處理 /bind 事件
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task Bind(Message message)
         {
@@ -176,7 +151,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <summary>
         /// 處理預設指令以外的事件
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task Defult(Message message)
         {

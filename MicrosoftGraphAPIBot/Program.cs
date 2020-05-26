@@ -43,7 +43,7 @@ namespace MicrosoftGraphAPIBot
 
                     services.AddScoped<ITelegramBotClient>(service => new TelegramBotClient(hostContext.Configuration["Telegram:Token"]));
                     services.AddScoped<HttpClient>();
-                    services.AddTransient<BindHandler>();
+                    services.AddScoped<BindHandler>();
                     services.AddScoped<TelegramHandler>();
                     services.AddScoped<TelegramCommandGenerator>();
                     services.AddHostedService<Startup>();
