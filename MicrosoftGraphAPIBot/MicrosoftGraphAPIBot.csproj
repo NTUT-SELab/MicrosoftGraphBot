@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.4" />
+    <PackageReference Include="Microsoft.Graph" Version="3.6.0" />
     <PackageReference Include="Microsoft.NetFramework.Analyzers" Version="3.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -41,7 +42,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Telegram.Bot" Version="15.5.1" />
+    <PackageReference Include="Telegram.Bot" Version="15.6.0" />
     <PackageReference Include="Text.Analyzers" Version="2.6.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

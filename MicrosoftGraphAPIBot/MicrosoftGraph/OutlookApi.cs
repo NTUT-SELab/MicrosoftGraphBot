@@ -1,0 +1,194 @@
+﻿using Microsoft.Graph;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace MicrosoftGraphAPIBot.MicrosoftGraph
+{
+    public class OutlookApi
+    {
+        public const string Scope = "Mail.Read Mail.ReadWrite Mail.Send";
+
+        /// <summary>
+        /// 新增草稿流程
+        /// 
+        /// 包含: 新增草稿API、取得訊息API、刪除訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        public static async Task<bool> CallCreateMessageAsync(IGraphServiceClient graphClient)
+        {
+            Message message = await CreateMessageAsync(graphClient);
+            Message message1 = await GetMessageAsync(graphClient, message.Id);
+
+            if (message.Id == message1.Id)
+                return false;
+
+            await DeleteMessageAsync(graphClient, message.Id);
+            return true;
+        }
+
+        /// <summary>
+        /// 更新草稿流程
+        /// 
+        /// 包含: 新增草稿API、取得訊息API、刪除訊息API、更新訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        public static async Task<bool> CallUpdateMessageAsync(IGraphServiceClient graphClient)
+        {
+            Message message = await CreateMessageAsync(graphClient);
+            Message message1 = await GetMessageAsync(graphClient, message.Id);
+
+            if (message.Id != message1.Id)
+                return false;
+
+            Guid id = await  UpdateMessageAsync(graphClient, message.Id);
+            message1 = await GetMessageAsync(graphClient, message.Id);
+
+            if (message1.Subject != id.ToString())
+                return false;
+
+            await DeleteMessageAsync(graphClient, message.Id);
+            return true;
+        }
+
+        /// <summary>
+        /// 發送訊息流程
+        /// 
+        /// 包含: 新增草稿API、取得訊息API、刪除訊息API、發送訊息API、列出所有訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        public static async Task<bool> CallSendMessageAsync(IGraphServiceClient graphClient)
+        {
+            Message message = await CreateMessageAsync(graphClient);
+            Message message1 = await GetMessageAsync(graphClient, message.Id);
+
+            if (message.Id != message1.Id)
+                return false;
+
+            await SendMessageAsync(graphClient, message.Id);
+            IUserMessagesCollectionPage messages = await ListMessageAsync(graphClient);
+
+            IEnumerable<Message> messages1 = messages.Where(item => item.Subject == message.Subject);
+            if (messages1.Any())
+                return false;
+
+            await DeleteMessageAsync(graphClient, message.Id);
+            foreach (Message message2 in messages1)
+                await DeleteMessageAsync(graphClient, message2.Id);
+            return true;
+        }
+
+        /// <summary>
+        /// 列出所有訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        private static async Task<IUserMessagesCollectionPage> ListMessageAsync(IGraphServiceClient graphClient)
+        {
+            IUserMessagesCollectionPage messages = await graphClient.Me.Messages
+                .Request()
+                .Select(e => new {e.Sender, e.Subject})
+                .GetAsync();
+
+            return messages;
+        }
+
+        /// <summary>
+        /// 新增草稿API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <returns></returns>
+        private static async Task<Message> CreateMessageAsync(IGraphServiceClient graphClient)
+        {
+            Guid Id = Guid.NewGuid();
+            var message = new Message
+            {
+                Subject = $"Bot {Id}",
+                Importance = Importance.Low,
+                Body = new ItemBody
+                {
+                    ContentType = BodyType.Text,
+                    Content = Id.ToString()
+                },
+                ToRecipients = new List<Recipient>()
+                {
+                    new Recipient
+                    {
+                        EmailAddress = new EmailAddress
+                        {
+                            Address = (await DefaultGraphApi.GetUserInfoAsync(graphClient)).Mail
+                        }
+                    }
+                }
+            };
+
+            message = await graphClient.Me.Messages
+                .Request()
+                .AddAsync(message);
+
+            return message;
+        }
+
+        /// <summary>
+        /// 更新訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <param name="mailId"></param>
+        /// <returns></returns>
+        private static async Task<Guid> UpdateMessageAsync(IGraphServiceClient graphClient, string mailId)
+        {
+            Guid Id = Guid.NewGuid();
+            var message = new Message
+            {
+                Subject = Id.ToString(),
+                Body = new ItemBody
+                {
+                    ContentType = BodyType.Text,
+                    Content = "content-value"
+                },
+                InferenceClassification = InferenceClassificationType.Other
+            };
+
+            await graphClient.Me.Messages[mailId].Request().UpdateAsync(message);
+
+            return Id;
+        }
+
+        /// <summary>
+        /// 發送訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <param name="mailId"></param>
+        /// <returns></returns>
+        private static async Task SendMessageAsync(IGraphServiceClient graphClient, string mailId)
+        {
+            await graphClient.Me.Messages[mailId].Send().Request().PostAsync();
+        }
+
+        /// <summary>
+        /// 刪除訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <param name="mailId"></param>
+        /// <returns></returns>
+        private static async Task DeleteMessageAsync(IGraphServiceClient graphClient, string mailId)
+        {
+            await graphClient.Me.Messages[mailId].Request().DeleteAsync();
+        }
+
+        /// <summary>
+        /// 取得訊息API
+        /// </summary>
+        /// <param name="graphClient"></param>
+        /// <param name="mailId"></param>
+        /// <returns></returns>
+        private static async Task<Message> GetMessageAsync(IGraphServiceClient graphClient, string mailId)
+        {
+            return await graphClient.Me.Messages[mailId].Request().GetAsync();
+        }
+    }
+}

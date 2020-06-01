@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Web;
-using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using MicrosoftGraphAPIBot.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Globalization;
 
@@ -20,8 +18,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private static readonly string appName = Guid.NewGuid().ToString();
         public const string appUrl = "https://localhost:44375/";
         private readonly BotDbContext db;
-        private readonly HttpClient httpClient;
-        private const string Scope = "offline_access user.read";
+        private readonly DefaultGraphApi defaultGraphApi;
 
         public static string AppRegistrationUrl { 
             get {
@@ -33,15 +30,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <summary>
         /// Create a new BindHandler instance.
         /// </summary>
-        /// <param name="botDbContext"> Data base </param>
-        /// <param name="httpClient"> 
-        /// Provides a base class for sending HTTP requests and receiving HTTP responses
-        /// from a resource identified by a URI.
-        /// </param>
-        public BindHandler(BotDbContext botDbContext, HttpClient httpClient)
+        /// <param name="botDbContext"></param>
+        /// <param name="defaultGraphApi"></param>
+        public BindHandler(BotDbContext botDbContext, DefaultGraphApi defaultGraphApi)
         {
             this.db = botDbContext;
-            this.httpClient = httpClient;
+            this.defaultGraphApi = defaultGraphApi;
         }
 
         /// <summary>
@@ -52,7 +46,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public async Task<(string, string)> GetAuthUrlAsync(string clientId)
         {
             string email = await db.AzureApps.Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
-            string url = $"https://login.microsoftonline.com/{GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(Scope)}";
+            string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
             return (clientId, url);
         }
 
@@ -71,7 +65,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 throw new InvalidOperationException("信箱格式錯誤");
             if (!Guid.TryParse(clientId, out Guid appId))
                 throw new InvalidOperationException("應用程式 Client Id 格式錯誤");
-            if (!await IsValidApplicationAsync(email, clientId, clientSecret))
+            if (!await defaultGraphApi.IsValidApplicationAsync(email, clientId, clientSecret))
                 throw new InvalidOperationException("無效的 Azure 應用程式");
 
             // 寫入資料庫
@@ -136,14 +130,14 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             Uri responseUrl = new Uri(authResponse);
             string code = HttpUtility.ParseQueryString(responseUrl.Query).Get("code");
             Guid appId = Guid.Parse(clientId);
-            (string, string) tokens = await GetTokenAsync(appId, code);
-            await GetUserInfoAsync(tokens.Item1);
+            (string, string) tokens = await defaultGraphApi.GetTokenAsync(appId, code);
+            await DefaultGraphApi.GetUserInfoAsync(tokens.Item1);
 
             db.AppAuths.Add(new AppAuth { 
                 AzureAppId = appId,
                 Name = name,
                 RefreshToken = tokens.Item2,
-                Scope = Scope
+                Scope = DefaultGraphApi.Scope
             });
 
             await db.SaveChangesAsync();
@@ -195,97 +189,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 return false;
             }
-        }
-
-        /// <summary>
-        /// 驗證 Azure 應用程式是否有效
-        ///
-        /// https://docs.microsoft.com/en-us/azure/media-services/previous/media-services-rest-connect-with-aad#get-the-access-token-using-postman
-        /// </summary>
-        /// <param name="email"> 應用程式持有者的 email </param>
-        /// <param name="clientId"> Application (client) ID </param>
-        /// <param name="clientSecret"> Client secrets </param>
-        /// <returns> True 為有效的 Azure 應用程式，False 為無效的 Azure 應用程式 </returns>
-        private async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
-        {
-            Dictionary<string, string> body = new Dictionary<string, string>()
-            {
-                { "grant_type", "client_credentials" },
-                { "client_id", clientId },
-                { "client_secret", clientSecret },
-                { "resource", "https://rest.media.azure.net" }
-            };
-
-            var formData = new FormUrlEncodedContent(body);
-            string tenant = GetTenant(email);
-            Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/token");
-            var buffer = await httpClient.PostAsync(url, formData);
-
-            string json = await buffer.Content.ReadAsStringAsync();
-            JObject jObject = JObject.Parse(json);
-            if (jObject.Property("access_token") != null)
-                return true;
-
-            return false;
-        }
-
-        /// <summary>
-        /// Get o365 user token.
-        /// </summary>
-        /// <param name="clientId"> Application (client) ID </param>
-        /// <param name="code"> The authorization_code that the app requested. 
-        /// The app can use the authorization code to request an access token for the target resource. 
-        /// Authorization_codes are very short lived, typically they expire after about 10 minutes. </param>
-        /// <returns> (access token, refresh token) </returns>
-        private async Task<(string, string)> GetTokenAsync(Guid clientId, string code)
-        {
-            AzureApp azureApp = await db.AzureApps.FindAsync(clientId);
-
-            Dictionary<string, string> body = new Dictionary<string, string>()
-            {
-                { "client_id", clientId.ToString() },
-                { "scope", Scope },
-                { "code", code },
-                { "redirect_uri", appUrl },
-                { "grant_type", "authorization_code" },
-                { "client_secret", azureApp.Secrets }
-            };
-
-            var formData = new FormUrlEncodedContent(body);
-            string tenant = GetTenant(azureApp.Email);
-            Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token");
-            var buffer = await httpClient.PostAsync(url, formData);
-
-            string json = await buffer.Content.ReadAsStringAsync();
-            JObject jObject = JObject.Parse(json);
-            if(jObject.Property("access_token") != null)
-                return (jObject["access_token"].ToString(), jObject["refresh_token"].ToString());
-
-            throw new InvalidOperationException("獲取 Token 失敗");
-        }
-
-        private async Task<string> GetUserInfoAsync(string token)
-        {
-            Uri url = new Uri($"https://graph.microsoft.com/v1.0/me ");
-            httpClient.DefaultRequestHeaders.Add("Authorization", token);
-            var buffer = await httpClient.GetAsync(url);
-
-            string json = await buffer.Content.ReadAsStringAsync();
-            JObject jObject = JObject.Parse(json);
-            if (jObject.Property("userPrincipalName") != null)
-                return json;
-
-            throw new InvalidOperationException("獲取 User Info 失敗");
-        }
-
-        /// <summary>
-        /// 取得 Email 的 UPN 尾碼
-        /// </summary>
-        /// <param name="email"> 應用程式持有者的 email </param>
-        /// <returns> UPN 尾碼 </returns>
-        private static string GetTenant(string email)
-        {
-            return email.Split('@')[1];
         }
     }
 }
