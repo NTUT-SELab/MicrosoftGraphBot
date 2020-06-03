@@ -1,0 +1,38 @@
+variables:
+  buildConfiguration: 'Release'
+
+jobs:
+- job: 'Ubuntu'
+  pool:
+    vmImage: 'ubuntu-latest'
+  steps:
+  - template: azure_templates/tests.yml
+
+- job: 'Windows'
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - template: azure_templates/windows_tests.yml
+
+- job: 'MacOS'
+  pool:
+    vmImage: 'macOS-latest'
+  steps:
+  - template: azure_templates/tests.yml
+
+- job: 'TrainIntelliCodeModel'
+  pool:
+    vmImage: 'windows-latest'
+  dependsOn:
+  - 'Ubuntu'
+  - 'Windows'
+  - 'MacOS'
+  condition: succeeded()
+  steps:
+  - script: dotnet build --configuration $(buildConfiguration)
+    displayName: 'Build'
+
+  - task: Visual Studio IntelliCode Team Model Training@0
+    inputs:
+      branch: 'master'
+      intelliCodeServiceEndpoint: 'IntelliCode'

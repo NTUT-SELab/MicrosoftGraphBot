@@ -22,7 +22,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             Message message = await CreateMessageAsync(graphClient);
             Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-            if (message.Id == message1.Id)
+            if (message.Id != message1.Id)
                 return false;
 
             await DeleteMessageAsync(graphClient, message.Id);
@@ -70,13 +70,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 return false;
 
             await SendMessageAsync(graphClient, message.Id);
-            IUserMessagesCollectionPage messages = await ListMessageAsync(graphClient);
-
-            IEnumerable<Message> messages1 = messages.Where(item => item.Subject == message.Subject);
-            if (messages1.Any())
+            
+            IList<Message> messages = await ListMessageAsync(graphClient);
+            IEnumerable<Message> messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
+            if (!messages1.Any())
                 return false;
 
-            await DeleteMessageAsync(graphClient, message.Id);
             foreach (Message message2 in messages1)
                 await DeleteMessageAsync(graphClient, message2.Id);
             return true;
@@ -167,6 +166,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private static async Task SendMessageAsync(IGraphServiceClient graphClient, string mailId)
         {
             await graphClient.Me.Messages[mailId].Send().Request().PostAsync();
+            await Task.Delay(5000);
         }
 
         /// <summary>
