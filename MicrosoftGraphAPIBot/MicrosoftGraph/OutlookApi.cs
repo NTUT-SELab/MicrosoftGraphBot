@@ -1,4 +1,6 @@
-﻿using Microsoft.Graph;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,27 +8,45 @@ using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
-    public class OutlookApi
+    /// <summary>
+    /// Outlook Api 腳本
+    /// </summary>
+    public class OutlookApi : GraphApi
     {
         public const string Scope = "Mail.Read Mail.ReadWrite Mail.Send";
+
+        public OutlookApi(IGraphServiceClient graphClient) : base(graphClient)
+        {
+        }
+
+        public OutlookApi(ILogger logger, IConfiguration configuration) : base(logger, configuration)
+        {
+        }
 
         /// <summary>
         /// 新增草稿流程
         /// 
         /// 包含: 新增草稿API、取得訊息API、刪除訊息API
         /// </summary>
-        /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<bool> CallCreateMessageAsync(IGraphServiceClient graphClient)
+        public async Task<bool> CallCreateMessageAsync()
         {
-            Message message = await CreateMessageAsync(graphClient);
-            Message message1 = await GetMessageAsync(graphClient, message.Id);
+            try
+            {
+                Message message = await CreateMessageAsync(graphClient);
+                Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-            if (message.Id != message1.Id)
+                if (message.Id != message1.Id)
+                    return false;
+
+                await DeleteMessageAsync(graphClient, message.Id);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex.Message);
                 return false;
-
-            await DeleteMessageAsync(graphClient, message.Id);
-            return true;
+            }
         }
 
         /// <summary>
@@ -34,24 +54,31 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// 
         /// 包含: 新增草稿API、取得訊息API、刪除訊息API、更新訊息API
         /// </summary>
-        /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<bool> CallUpdateMessageAsync(IGraphServiceClient graphClient)
+        public async Task<bool> CallUpdateMessageAsync()
         {
-            Message message = await CreateMessageAsync(graphClient);
-            Message message1 = await GetMessageAsync(graphClient, message.Id);
+            try
+            {
+                Message message = await CreateMessageAsync(graphClient);
+                Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-            if (message.Id != message1.Id)
+                if (message.Id != message1.Id)
+                    return false;
+
+                Guid id = await UpdateMessageAsync(graphClient, message.Id);
+                message1 = await GetMessageAsync(graphClient, message.Id);
+
+                if (message1.Subject != id.ToString())
+                    return false;
+
+                await DeleteMessageAsync(graphClient, message.Id);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex.Message);
                 return false;
-
-            Guid id = await  UpdateMessageAsync(graphClient, message.Id);
-            message1 = await GetMessageAsync(graphClient, message.Id);
-
-            if (message1.Subject != id.ToString())
-                return false;
-
-            await DeleteMessageAsync(graphClient, message.Id);
-            return true;
+            }
         }
 
         /// <summary>
@@ -59,26 +86,33 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// 
         /// 包含: 新增草稿API、取得訊息API、刪除訊息API、發送訊息API、列出所有訊息API
         /// </summary>
-        /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<bool> CallSendMessageAsync(IGraphServiceClient graphClient)
+        public async Task<bool> CallSendMessageAsync()
         {
-            Message message = await CreateMessageAsync(graphClient);
-            Message message1 = await GetMessageAsync(graphClient, message.Id);
+            try
+            {
+                Message message = await CreateMessageAsync(graphClient);
+                Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-            if (message.Id != message1.Id)
+                if (message.Id != message1.Id)
+                    return false;
+
+                await SendMessageAsync(graphClient, message.Id);
+
+                IList<Message> messages = await ListMessageAsync(graphClient);
+                IEnumerable<Message> messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
+                if (!messages1.Any())
+                    return false;
+
+                foreach (Message message2 in messages1)
+                    await DeleteMessageAsync(graphClient, message2.Id);
+                return true;
+            }
+            catch(Exception ex)
+            {
+                logger.LogError(ex.Message);
                 return false;
-
-            await SendMessageAsync(graphClient, message.Id);
-            
-            IList<Message> messages = await ListMessageAsync(graphClient);
-            IEnumerable<Message> messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
-            if (!messages1.Any())
-                return false;
-
-            foreach (Message message2 in messages1)
-                await DeleteMessageAsync(graphClient, message2.Id);
-            return true;
+            }
         }
 
         /// <summary>

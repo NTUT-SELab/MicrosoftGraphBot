@@ -45,7 +45,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<(string, string)> GetAuthUrlAsync(string clientId)
         {
-            string email = await db.AzureApps.Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
+            string email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
             string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
             return (clientId, url);
         }
@@ -97,7 +97,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> 應用程式數量 </returns>
         public async Task<int> AppCountAsync(long userId)
         {
-            return await db.AzureApps
+            return await db.AzureApps.AsQueryable()
                 .Where(app => app.TelegramUser.Id == userId)
                 .CountAsync();
         }
@@ -109,7 +109,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> 應用程式Guid </returns>
         public async Task<IEnumerable<(Guid, DateTime)>> GetAppsInfoAsync(long userId)
         {
-            var appInfo = await db.AzureApps
+            var appInfo = await db.AzureApps.AsQueryable()
                 .Where(app => app.TelegramUser.Id == userId)
                 .Select(app => new { app.Id, app.Date })
                 .ToListAsync();

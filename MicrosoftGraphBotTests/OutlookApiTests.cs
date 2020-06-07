@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MicrosoftGraphBotTests
@@ -8,7 +11,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class OutlookApiTests
     {
-        private IGraphServiceClient graphClient;
+        private readonly IGraphServiceClient graphClient;
 
         public OutlookApiTests()
         {
@@ -19,22 +22,70 @@ namespace MicrosoftGraphBotTests
         [TestMethod]
         public async Task TestCallCreateMessageAsync()
         {
-            bool result = await OutlookApi.CallCreateMessageAsync(graphClient);
+            OutlookApi outlookApi = new OutlookApi(graphClient);
+            bool result = await outlookApi.CallCreateMessageAsync();
             Assert.IsTrue(result);
         }
 
         [TestMethod]
         public async Task TestCallUpdateMessage()
         {
-            bool result = await OutlookApi.CallUpdateMessageAsync(graphClient);
+            OutlookApi outlookApi = new OutlookApi(graphClient);
+            bool result = await outlookApi.CallUpdateMessageAsync();
             Assert.IsTrue(result);
         }
 
         [TestMethod]
         public async Task TestCallSendMessage()
         {
-            bool result = await OutlookApi.CallSendMessageAsync(graphClient);
+            OutlookApi outlookApi = new OutlookApi(graphClient);
+            bool result = await outlookApi.CallSendMessageAsync();
             Assert.IsTrue(result);
+        }
+
+        [TestMethod]
+        public async Task TestApiRunNoConfig()
+        {
+            OutlookApi outlookApi = new OutlookApi(null);
+            IEnumerable<(string, bool)> results = await outlookApi.RunAsync(graphClient).ToListAsync();
+
+            Assert.AreEqual(3, results.Count());
+        }
+
+        [TestMethod]
+        public async Task TestApiRunAll()
+        {
+            Dictionary<string, string> config = new Dictionary<string, string>
+            {
+                {"API:NumberOfMethodCall", "0"}
+            };
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(config)
+                .Build();
+
+            OutlookApi outlookApi = new OutlookApi(null, configuration);
+            IEnumerable<(string, bool)> results = await outlookApi.RunAsync(graphClient).ToListAsync();
+
+            Assert.AreEqual(3, results.Count());
+        }
+
+        [TestMethod]
+        public async Task TestApiRun1()
+        {
+            Dictionary<string, string> config = new Dictionary<string, string>
+            {
+                {"API:NumberOfMethodCall", "1"}
+            };
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(config)
+                .Build();
+
+            OutlookApi outlookApi = new OutlookApi(null, configuration);
+            IEnumerable<(string, bool)> results = await outlookApi.RunAsync(graphClient).ToListAsync();
+
+            Assert.AreEqual(1, results.Count());
         }
     }
 }

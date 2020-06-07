@@ -38,10 +38,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0" />
-    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.7.0.17535">
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="8.8.0.18411">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Linq.Async" Version="4.1.1" />
     <PackageReference Include="Telegram.Bot" Version="15.6.0" />
     <PackageReference Include="Text.Analyzers" Version="2.6.4">
       <PrivateAssets>all</PrivateAssets>

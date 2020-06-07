@@ -29,8 +29,7 @@ jobs:
   - 'MacOS'
   condition: succeeded()
   steps:
-  - script: dotnet build --configuration $(buildConfiguration)
-    displayName: 'Build'
+  - template: azure_templates/build.yml
 
   - task: Visual Studio IntelliCode Team Model Training@0
     inputs:

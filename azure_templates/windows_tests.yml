@@ -6,9 +6,18 @@ steps:
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --collect "Code coverage"'
+    arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
+    publishTestResults: true
 
-- task: PublishTestResults@2
+- script: |
+    dotnet tool install dotnet-reportgenerator-globaltool --tool-path .
+    .\reportgenerator.exe "-reports:$(Build.SourcesDirectory)/TestResults/Coverage/coverage.opencover.xml" "-targetdir:coverage/Cobertura" "-reporttypes:Cobertura;HTMLInline;HTMLChart"
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: Run Reportgenerator on Windows
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage report'
   inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
+    summaryFileLocation: $(Build.SourcesDirectory)/coverage/Cobertura/Cobertura.xml
+    reportDirectory: $(Build.SourcesDirectory)/coverage/Cobertura
+    codecoverageTool: cobertura
