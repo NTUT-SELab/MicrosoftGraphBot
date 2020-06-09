@@ -19,7 +19,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
         }
 
-        public OutlookApi(ILogger logger, IConfiguration configuration) : base(logger, configuration)
+        public OutlookApi(ILogger<OutlookApi> logger, IConfiguration configuration) : base(logger, configuration)
         {
         }
 

@@ -1,14 +1,10 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
+﻿using Microsoft.Graph;
 using MicrosoftGraphAPIBot.Models;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
@@ -156,53 +152,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public static string GetTenant(string email)
         {
             return email.Split('@')[1];
-        }
-    }
-
-    /// <summary>
-    /// GraphApi 腳本抽象類別
-    /// </summary>
-    public abstract class GraphApi
-    {
-        protected IGraphServiceClient graphClient;
-        protected readonly ILogger logger;
-        private readonly IConfiguration configuration;
-
-        protected GraphApi(IGraphServiceClient graphClient) => this.graphClient = graphClient;
-
-        protected GraphApi(ILogger logger, IConfiguration configuration) => (this.logger, this.configuration) = (logger, configuration);
-
-        /// <summary>
-        /// 執行 Api 腳本
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <returns></returns>
-        public async IAsyncEnumerable<(string, bool)> RunAsync(IGraphServiceClient graphClient)
-        {
-            this.graphClient = graphClient;
-
-            int numberOfMethodCall = 0;
-
-            if (configuration != null && configuration["API:NumberOfMethodCall"] != null)
-                numberOfMethodCall = int.Parse(configuration["API:NumberOfMethodCall"]);
-
-            IEnumerable<MethodInfo> methodInfos = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(method => method.Name.Contains("Call"));
-
-            if (numberOfMethodCall == 0 || methodInfos.Count() < numberOfMethodCall)
-                foreach (MethodInfo method in methodInfos)
-                {
-                    Task<bool> result = (Task<bool>)method.Invoke(this, null);
-                    yield return (method.Name, await result);
-                }
-            else
-            {
-                Random rnd = new Random(Guid.NewGuid().GetHashCode());
-                foreach (MethodInfo method in methodInfos.OrderBy(item => rnd.Next()).Take(numberOfMethodCall))
-                {
-                    Task<bool> result = (Task<bool>)method.Invoke(this, null);
-                    yield return (method.Name, await result);
-                }
-            }
         }
     }
 }
