@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using MicrosoftGraphAPIBot.Telegram;
-using System.Net.Http;
 using Telegram.Bot;
 
 namespace MicrosoftGraphAPIBot
@@ -40,12 +39,11 @@ namespace MicrosoftGraphAPIBot
                     {
                         options.UseSqlServer(DBConnection);
                     });
-
+                    services.AddHttpClient();
                     services.AddScoped<ITelegramBotClient>(service => new TelegramBotClient(hostContext.Configuration["Telegram:Token"]));
                     services.AddScoped<BindHandler>();
                     services.AddScoped<GraphApi, OutlookApi>();
                     services.AddScoped<DefaultGraphApi>();
-                    services.AddScoped<HttpClient>();
                     services.AddScoped<TelegramHandler>();
                     services.AddScoped<TelegramCommandGenerator>();
                     services.AddHostedService<Startup>();

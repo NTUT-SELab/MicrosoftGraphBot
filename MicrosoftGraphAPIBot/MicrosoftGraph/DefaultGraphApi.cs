@@ -12,7 +12,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     public class DefaultGraphApi
     {
         private readonly BotDbContext db;
-        private readonly HttpClient httpClient;
+        private readonly IHttpClientFactory clientFactory;
 
         private readonly static List<string> scopes = new List<string> {
             "offline_access user.read",
@@ -24,11 +24,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// Create a new DefaultGraphApi instance.
         /// </summary>
         /// <param name="botDbContext"></param>
-        /// <param name="httpClient"></param>
-        public DefaultGraphApi(BotDbContext botDbContext, HttpClient httpClient)
+        /// <param name="clientFactory"></param>
+        public DefaultGraphApi(BotDbContext botDbContext, IHttpClientFactory clientFactory)
         {
             this.db = botDbContext;
-            this.httpClient = httpClient;
+            this.clientFactory = clientFactory;
         }
 
         /// <summary>
@@ -70,6 +70,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             var formData = new FormUrlEncodedContent(body);
             string tenant = GetTenant(email);
             Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/token");
+            HttpClient httpClient = clientFactory.CreateClient();
             var buffer = await httpClient.PostAsync(url, formData);
 
             string json = await buffer.Content.ReadAsStringAsync();
@@ -105,6 +106,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             var formData = new FormUrlEncodedContent(body);
             string tenant = GetTenant(azureApp.Email);
             Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token");
+            HttpClient httpClient = clientFactory.CreateClient();
             var buffer = await httpClient.PostAsync(url, formData);
 
             string json = await buffer.Content.ReadAsStringAsync();
