@@ -1,37 +1,45 @@
 variables:
   buildConfiguration: 'Release'
 
-jobs:
-- job: 'Ubuntu'
-  pool:
-    vmImage: 'ubuntu-latest'
-  steps:
-  - template: azure_templates/tests.yml
+stages:
+- stage: Build_and_Test
+  displayName: 'Build and test projects'
+  jobs:
+  - job: 'Ubuntu'
+    displayName: 'Build and test project on Ubuntu platform'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: azure_templates/tests.yml
 
-- job: 'Windows'
-  pool:
-    vmImage: 'windows-latest'
-  steps:
-  - template: azure_templates/windows_tests.yml
+  - job: 'Windows'
+    displayName: 'Build and test project on Windows platform'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - template: azure_templates/windows_tests.yml
 
-- job: 'MacOS'
-  pool:
-    vmImage: 'macOS-latest'
-  steps:
-  - template: azure_templates/tests.yml
+  - job: 'MacOS'
+    displayName: 'Build and test project on MacOS platform'
+    pool:
+      vmImage: 'macOS-latest'
+    steps:
+    - template: azure_templates/tests.yml
 
-- job: 'TrainIntelliCodeModel'
-  pool:
-    vmImage: 'windows-latest'
+- stage: IntelliCode
+  displayName: 'Train intelliCode model'
   dependsOn:
-  - 'Ubuntu'
-  - 'Windows'
-  - 'MacOS'
+    - Build_and_Test
   condition: succeeded()
-  steps:
-  - template: azure_templates/build.yml
+  jobs:
+  - job: 'Training'
+    displayName: 'Train intelliCode model'
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+    - template: azure_templates/build.yml
 
-  - task: Visual Studio IntelliCode Team Model Training@0
-    inputs:
-      branch: 'master'
-      intelliCodeServiceEndpoint: 'IntelliCode'
+    - task: Visual Studio IntelliCode Team Model Training@0
+      inputs:
+        branch: 'master'
+        intelliCodeServiceEndpoint: 'IntelliCode'

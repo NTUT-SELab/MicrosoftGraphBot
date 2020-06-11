@@ -6,4 +6,4 @@ steps:
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    arguments: '--no-build --configuration $(buildConfiguration)'
