@@ -55,6 +55,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             return results;
         }
 
+        /// <summary>
+        /// 開始執行 Microsoft Graph 服務
+        /// </summary>
+        /// <param name="api"> Microsoft Graph 服務 </param>
+        /// <returns> call api result message </returns>
         private async Task<IEnumerable<(string, string, bool)>> CallApi(GraphApi api)
         {
             IReadOnlyList<(string, bool)> results = await api.RunAsync(graphClient).ToListAsync();

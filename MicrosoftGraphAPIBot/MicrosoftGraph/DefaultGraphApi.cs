@@ -127,11 +127,45 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         }
 
         /// <summary>
+        /// Reflash o365 user token.
+        /// </summary>
+        /// <param name="reflash_token"> The refresh_token that you acquired during the token request. </param>
+        /// <returns> (access token, 別名) </returns>
+        public async Task<(string, string)> ReflashTokenAsync(AppAuth appAuth)
+        {
+            Dictionary<string, string> body = new Dictionary<string, string>()
+            {
+                { "client_id", appAuth.AzureApp.Id.ToString() },
+                { "scope", Scope },
+                { "refresh_token", appAuth.RefreshToken },
+                { "redirect_uri", BindHandler.appUrl },
+                { "grant_type", "refresh_token" },
+                { "client_secret", appAuth.AzureApp.Secrets }
+            };
+
+            var formData = new FormUrlEncodedContent(body);
+            string tenant = GetTenant(appAuth.AzureApp.Email);
+            Uri url = new Uri($"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token");
+            HttpClient httpClient = clientFactory.CreateClient();
+            var buffer = await httpClient.PostAsync(url, formData);
+
+            string json = await buffer.Content.ReadAsStringAsync();
+            JObject jObject = JObject.Parse(json);
+            if (jObject.Property("access_token") != null)
+            {
+                appAuth.RefreshToken = jObject["refresh_token"].ToString();
+                return (jObject["access_token"].ToString(), appAuth.Name);
+            }
+
+            throw new InvalidOperationException($"授權名稱: {appAuth.Name}, 刷新 Token 失敗");
+        }
+
+        /// <summary>
         /// 取得 o365 使用者資訊
         /// </summary>
         /// <param name="token"> access token </param>
         /// <returns> User object </returns>
-        public static async Task<User> GetUserInfoAsync(string token)
+            public static async Task<User> GetUserInfoAsync(string token)
         {
             try
             {
