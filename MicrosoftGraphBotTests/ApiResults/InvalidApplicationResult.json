@@ -1,0 +1,11 @@
+{
+  "error": "unauthorized_client",
+  "error_description": "AADSTS700016: Application with identifier '12131231' was not found in the directory 'ntutselab.onmicrosoft.com'. This can happen if the application has not been installed by the administrator of the tenant or consented to by any user in the tenant. You may have sent your authentication request to the wrong tenant.\r\nTrace ID: 8601622e-d48e-44c0-b85c-3a112eebf500\r\nCorrelation ID: 999861ed-98ca-447d-a95a-e66a1b9712ae\r\nTimestamp: 2020-06-11 12:13:05Z",
+  "error_codes": [
+    700016
+  ],
+  "timestamp": "2020-06-11 12:13:05Z",
+  "trace_id": "8601622e-d48e-44c0-b85c-3a112eebf500",
+  "correlation_id": "999861ed-98ca-447d-a95a-e66a1b9712ae",
+  "error_uri": "https://login.microsoftonline.com/error?code=700016"
+}

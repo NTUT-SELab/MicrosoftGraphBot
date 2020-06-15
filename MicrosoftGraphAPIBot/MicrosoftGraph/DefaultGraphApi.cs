@@ -1,4 +1,5 @@
-﻿using Microsoft.Graph;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Graph;
 using MicrosoftGraphAPIBot.Models;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,6 +13,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     public class DefaultGraphApi
     {
         private readonly BotDbContext db;
+        private readonly ILogger logger;
         private readonly IHttpClientFactory clientFactory;
 
         private readonly static List<string> scopes = new List<string> {
@@ -25,11 +27,8 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="botDbContext"></param>
         /// <param name="clientFactory"></param>
-        public DefaultGraphApi(BotDbContext botDbContext, IHttpClientFactory clientFactory)
-        {
-            this.db = botDbContext;
-            this.clientFactory = clientFactory;
-        }
+        public DefaultGraphApi(BotDbContext botDbContext, ILogger<DefaultGraphApi> logger, IHttpClientFactory clientFactory) => 
+            (this.db, this.logger, this.clientFactory) = (botDbContext, logger, clientFactory);
 
         /// <summary>
         /// 取得 Graph service client
@@ -59,6 +58,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> True 為有效的 Azure 應用程式，False 為無效的 Azure 應用程式 </returns>
         public async Task<bool> IsValidApplicationAsync(string email, string clientId, string clientSecret)
         {
+            logger.LogInformation($"Verify azure application: email: {email}, clientId: {clientId}");
             Dictionary<string, string> body = new Dictionary<string, string>()
             {
                 { "grant_type", "client_credentials" },
@@ -76,8 +76,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             string json = await buffer.Content.ReadAsStringAsync();
             JObject jObject = JObject.Parse(json);
             if (jObject.Property("access_token") != null)
+            {
+                logger.LogInformation("Verify azure application: Success");
                 return true;
+            }
 
+            logger.LogError(json);
             return false;
         }
 
@@ -91,6 +95,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> (access token, refresh token) </returns>
         public async Task<(string, string)> GetTokenAsync(Guid clientId, string code)
         {
+            logger.LogInformation($"Get Token: clientId: {clientId}, code: {code}");
             AzureApp azureApp = await db.AzureApps.FindAsync(clientId);
 
             Dictionary<string, string> body = new Dictionary<string, string>()
@@ -112,8 +117,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             string json = await buffer.Content.ReadAsStringAsync();
             JObject jObject = JObject.Parse(json);
             if (jObject.Property("access_token") != null)
+            {
+                logger.LogInformation("Get Token: Success");
                 return (jObject["access_token"].ToString(), jObject["refresh_token"].ToString());
+            }
 
+            logger.LogError(json);
             throw new InvalidOperationException("獲取 Token 失敗");
         }
 
@@ -124,9 +133,16 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> User object </returns>
         public static async Task<User> GetUserInfoAsync(string token)
         {
-            IGraphServiceClient graphClient = GetGraphServiceClient(token);
+            try
+            {
+                IGraphServiceClient graphClient = GetGraphServiceClient(token);
 
-            return await GetUserInfoAsync(graphClient);
+                return await GetUserInfoAsync(graphClient);
+            }
+            catch
+            {
+                throw new InvalidOperationException("獲取 User Info 失敗");
+            }
         }
 
         /// <summary>

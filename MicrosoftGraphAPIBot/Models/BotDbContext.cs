@@ -4,6 +4,10 @@ namespace MicrosoftGraphAPIBot.Models
 {
     public class BotDbContext : DbContext
     {
+        public BotDbContext()
+        {
+        }
+
         public BotDbContext(DbContextOptions<BotDbContext> options) : base(options)
         { 
         }

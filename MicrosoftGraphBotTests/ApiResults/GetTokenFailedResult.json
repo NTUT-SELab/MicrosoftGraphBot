@@ -1,0 +1,11 @@
+{
+  "error": "invalid_grant",
+  "error_description": "AADSTS9002313: Invalid request. Request is malformed or invalid.\r\nTrace ID: fd210e6a-6191-4db4-af11-d33655318f00\r\nCorrelation ID: 72518b42-8217-48c0-9646-6c9dc8983382\r\nTimestamp: 2020-06-12 03:02:14Z",
+  "error_codes": [
+    9002313
+  ],
+  "timestamp": "2020-06-12 03:02:14Z",
+  "trace_id": "fd210e6a-6191-4db4-af11-d33655318f00",
+  "correlation_id": "72518b42-8217-48c0-9646-6c9dc8983382",
+  "error_uri": "https://login.microsoftonline.com/error?code=9002313"
+}
