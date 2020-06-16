@@ -16,14 +16,14 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     public class BindHandler
     {
         private static readonly string appName = Guid.NewGuid().ToString();
-        public const string appUrl = "https://localhost:44375/";
+        public const string AppUrl = "https://localhost:44375/";
         private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
 
         public static string AppRegistrationUrl { 
             get {
-                string ru = $"https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={appUrl}&platform=option-windowsuniversal";
-                string deeplink = $"/quickstart/graphIO?publicClientSupport=false&appName={appName}&redirectUrl={appUrl}&allowImplicitFlow=true&ru=" + HttpUtility.UrlEncode(ru);
+                string ru = $"https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={AppUrl}&platform=option-windowsuniversal";
+                string deeplink = $"/quickstart/graphIO?publicClientSupport=false&appName={appName}&redirectUrl={AppUrl}&allowImplicitFlow=true&ru=" + HttpUtility.UrlEncode(ru);
                 return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
             } }
 
@@ -32,21 +32,18 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="botDbContext"></param>
         /// <param name="defaultGraphApi"></param>
-        public BindHandler(BotDbContext botDbContext, DefaultGraphApi defaultGraphApi)
-        {
-            this.db = botDbContext;
-            this.defaultGraphApi = defaultGraphApi;
-        }
+        public BindHandler(BotDbContext botDbContext, DefaultGraphApi defaultGraphApi) =>
+            (this.db, this.defaultGraphApi) = (botDbContext, defaultGraphApi);
 
         /// <summary>
         /// 取得 o365 授權網址
         /// </summary>
         /// <param name="clientId"> Application (client) ID </param>
-        /// <returns></returns>
+        /// <returns> (clientId, o365 授權網址) </returns>
         public async Task<(string, string)> GetAuthUrlAsync(string clientId)
         {
             string email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
-            string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(appUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
+            string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(AppUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
             return (clientId, url);
         }
 
@@ -82,12 +79,17 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 TelegramUser = telegramUser
             });
 
-            // https://docs.microsoft.com/zh-tw/ef/core/saving/explicit-values-generated-properties#explicit-values-into-sql-server-identity-columns
-            await db.Database.OpenConnectionAsync();
-            db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers ON");
-            db.SaveChanges();
-            db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
-            await db.Database.CloseConnectionAsync();
+            if (!db.Database.IsInMemory())
+            {
+                // https://docs.microsoft.com/zh-tw/ef/core/saving/explicit-values-generated-properties#explicit-values-into-sql-server-identity-columns
+                await db.Database.OpenConnectionAsync();
+                db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers ON");
+                db.SaveChanges();
+                db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
+                await db.Database.CloseConnectionAsync();
+            }
+            else
+                await db.SaveChangesAsync();
         }
 
         /// <summary>
@@ -125,7 +127,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// Authorization_codes are very short lived, typically they expire after about 10 minutes. </param>
         /// <param name="name"> 授權別名 </param>
         /// <returns></returns>
-        public async Task BindAuth(string clientId, string authResponse, string name)
+        public async Task BindAuthAsync(string clientId, string authResponse, string name)
         {
             Uri responseUrl = new Uri(authResponse);
             string code = HttpUtility.ParseQueryString(responseUrl.Query).Get("code");

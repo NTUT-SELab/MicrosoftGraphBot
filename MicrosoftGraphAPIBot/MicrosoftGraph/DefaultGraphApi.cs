@@ -103,7 +103,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 { "client_id", clientId.ToString() },
                 { "scope", Scope },
                 { "code", code },
-                { "redirect_uri", BindHandler.appUrl },
+                { "redirect_uri", BindHandler.AppUrl },
                 { "grant_type", "authorization_code" },
                 { "client_secret", azureApp.Secrets }
             };
@@ -138,7 +138,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 { "client_id", appAuth.AzureApp.Id.ToString() },
                 { "scope", Scope },
                 { "refresh_token", appAuth.RefreshToken },
-                { "redirect_uri", BindHandler.appUrl },
+                { "redirect_uri", BindHandler.AppUrl },
                 { "grant_type", "refresh_token" },
                 { "client_secret", appAuth.AzureApp.Secrets }
             };
@@ -153,11 +153,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             JObject jObject = JObject.Parse(json);
             if (jObject.Property("access_token") != null)
             {
+                logger.LogInformation($"授權名稱: {appAuth.Name}, Reflash Token: Success");
                 appAuth.RefreshToken = jObject["refresh_token"].ToString();
                 return (jObject["access_token"].ToString(), appAuth.Name);
             }
 
-            throw new InvalidOperationException($"授權名稱: {appAuth.Name}, 刷新 Token 失敗");
+            logger.LogError(json);
+            throw new InvalidOperationException($"授權名稱: {appAuth.Name}, Reflash Token 失敗");
         }
 
         /// <summary>

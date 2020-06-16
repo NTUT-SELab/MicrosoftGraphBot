@@ -130,7 +130,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 text: command + "\n" +
                     $"應用程式Id: {auth.Item1}" + "\n" +
                     "[重新導向的網址] [別名 (用於管理)]" + "\n" +
-                    $"範例: {BindHandler.appUrl}... Auth1" + "\n" +
+                    $"範例: {BindHandler.AppUrl}... Auth1" + "\n" +
                     "備註: 每個項目請用空格分開",
                 replyMarkup: new ForceReplyMarkup());
         }
@@ -152,7 +152,7 @@ namespace MicrosoftGraphAPIBot.Telegram
 
                 string clientIdItem = message.ReplyToMessage.Text.Split('\n')[1];
                 string clientId = clientIdItem.Split(' ')[1];
-                await bindHandler.BindAuth(clientId, userMessages[0], userMessages[1]);
+                await bindHandler.BindAuthAsync(clientId, userMessages[0], userMessages[1]);
 
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,

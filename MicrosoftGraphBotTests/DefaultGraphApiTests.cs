@@ -1,18 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
-using MockQueryable.Moq;
-using Moq;
-using Moq.Protected;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace MicrosoftGraphBotTests
@@ -26,9 +19,11 @@ namespace MicrosoftGraphBotTests
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "ValidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
             Guid clientId = Guid.NewGuid();
-            var mocks = CreateGetTokenAsyncMock(json, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
 
-            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(mocks.Item1, mocks.Item2, mocks.Item3);
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
             Assert.IsTrue(await defaultGraphApi.IsValidApplicationAsync("test@onmicrosoft.com", string.Empty, string.Empty));
         }
 
@@ -38,9 +33,11 @@ namespace MicrosoftGraphBotTests
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
             Guid clientId = Guid.NewGuid();
-            var mocks = CreateGetTokenAsyncMock(json, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
 
-            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(mocks.Item1, mocks.Item2, mocks.Item3);
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
             Assert.IsFalse(await defaultGraphApi.IsValidApplicationAsync("test@onmicrosoft.com", string.Empty, string.Empty));
         }
 
@@ -50,9 +47,11 @@ namespace MicrosoftGraphBotTests
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenSuccessResult.json");
             string json = File.ReadAllText(testResultPath);
             Guid clientId = Guid.NewGuid();
-            var mocks = CreateGetTokenAsyncMock(json, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
 
-            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(mocks.Item1, mocks.Item2, mocks.Item3);
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
             (string, string) tokens = await defaultGraphApi.GetTokenAsync(clientId, string.Empty);
 
             JObject jObject = JObject.Parse(json);
@@ -67,10 +66,48 @@ namespace MicrosoftGraphBotTests
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenFailedResult.json");
             string json = File.ReadAllText(testResultPath);
             Guid clientId = Guid.NewGuid();
-            var mocks = CreateGetTokenAsyncMock(json, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
 
-            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(mocks.Item1, mocks.Item2, mocks.Item3);
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
             (string, string) _ = await defaultGraphApi.GetTokenAsync(clientId, string.Empty);
+        }
+
+        [TestMethod]
+        public async Task TestReflashTokenSuccessAsync()
+        {
+            string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenSuccessResult.json");
+            string json = File.ReadAllText(testResultPath);
+            Guid clientId = Guid.NewGuid();
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            AppAuth appAuth = await db.AppAuths.Include(appAuth => appAuth.AzureApp).FirstAsync();
+
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+            (string, string) tokens = await defaultGraphApi.ReflashTokenAsync(appAuth);
+
+            JObject jObject = JObject.Parse(json);
+            Assert.AreEqual(jObject["access_token"].ToString(), tokens.Item1);
+            Assert.AreEqual(appAuth.Name, tokens.Item2);
+            Assert.AreEqual(jObject["refresh_token"].ToString(), appAuth.RefreshToken);
+        }
+
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public async Task TestReflashTokenFailedAsync()
+        {
+            string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenFailedResult.json");
+            string json = File.ReadAllText(testResultPath);
+            Guid clientId = Guid.NewGuid();
+            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            AppAuth appAuth = await db.AppAuths.Include(appAuth => appAuth.AzureApp).FirstAsync();
+
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+            (string, string) _ = await defaultGraphApi.ReflashTokenAsync(appAuth);
         }
 
         [TestMethod]
@@ -87,39 +124,10 @@ namespace MicrosoftGraphBotTests
             _ = await DefaultGraphApi.GetUserInfoAsync(string.Empty);
         }
 
-        private (BotDbContext, ILogger<DefaultGraphApi>, IHttpClientFactory) CreateGetTokenAsyncMock(string json, Guid clientId)
+        [TestCleanup]
+        public async Task Cleanup()
         {
-            var loggerMock = new Mock<ILogger<DefaultGraphApi>>();
-
-            //  Mock HttpClientFactory
-            var handlerMock = new Mock<HttpMessageHandler>();
-            var response = new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(json),
-            };
-            handlerMock.Protected()
-               .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
-               .ReturnsAsync(response);
-            var httpClient = new HttpClient(handlerMock.Object);
-            var clientFactoryMock = new Mock<IHttpClientFactory>();
-            clientFactoryMock.Setup(m => m.CreateClient(It.IsAny<string>())).Returns(httpClient);
-
-            // Mock DbContext
-            var azureApps = new List<AzureApp>
-            {
-                new AzureApp { Id = clientId, Email = "test@onmicrosoft.com", Secrets = string.Empty }
-            }.AsQueryable();
-            var mockDbSet = azureApps.BuildMockDbSet();
-            mockDbSet.Setup(x => x.FindAsync(clientId)).ReturnsAsync((object[] ids) =>
-            {
-                var id = (Guid)ids[0];
-                return azureApps.FirstOrDefault(x => x.Id == id);
-            });
-            var mockDbContext = new Mock<BotDbContext>();
-            mockDbContext.Setup(c => c.AzureApps).Returns(mockDbSet.Object);
-
-            return (mockDbContext.Object, loggerMock.Object, clientFactoryMock.Object);
+            await Utils.DeleteDBAsync();
         }
     }
 }
