@@ -1,9 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
-using Moq;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,21 +13,31 @@ namespace MicrosoftGraphBotTests
     public class ApiControllerTests
     {
         private readonly IGraphServiceClient graphClient;
-        private readonly ILogger<ApiController> logger;
+        private readonly ServiceCollection services;
 
         public ApiControllerTests()
         {
             string token = Utils.GetTestToken().Result;
             graphClient = DefaultGraphApi.GetGraphServiceClient(token);
-            var mock = new Mock<ILogger<ApiController>>();
-            logger = mock.Object;
+            services = new ServiceCollection();
+            services.AddLogging();
+            services.AddScoped<GraphApi, OutlookApi>();
+            services.AddScoped<ApiController>();
         }
 
         [TestMethod]
         public async Task TestApiRunNoConfig()
         {
-            OutlookApi outlookApi = new OutlookApi(null);
-            ApiController apiController = new ApiController(logger, null, new GraphApi[] { outlookApi });
+            Dictionary<string, string> config = new Dictionary<string, string>();
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(config)
+                .Build();
+
+            services.AddScoped<IConfiguration>(service => configuration);
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
             Assert.AreEqual(3, results.Count());
@@ -47,8 +56,10 @@ namespace MicrosoftGraphBotTests
                 .AddInMemoryCollection(config)
                 .Build();
 
-            OutlookApi outlookApi = new OutlookApi(null, configuration);
-            ApiController apiController = new ApiController(logger, configuration, new GraphApi[] { outlookApi });
+            services.AddScoped<IConfiguration>(service => configuration);
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            
+            ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
             Assert.AreEqual(3, results.Count());
@@ -67,8 +78,10 @@ namespace MicrosoftGraphBotTests
                 .AddInMemoryCollection(config)
                 .Build();
 
-            OutlookApi outlookApi = new OutlookApi(null, configuration);
-            ApiController apiController = new ApiController(logger, configuration, new GraphApi[] { outlookApi });
+            services.AddScoped<IConfiguration>(service => configuration);
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
             Assert.AreEqual(1, results.Count());

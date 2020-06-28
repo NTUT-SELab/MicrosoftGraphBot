@@ -20,8 +20,8 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private IGraphServiceClient graphClient;
         private string authName;
 
-        public ApiController(ILogger<ApiController> logger, IConfiguration configuration, GraphApi[] graphApis) => 
-            (this.logger, this.configuration, this.graphApis) = (logger, configuration, graphApis);
+        public ApiController(ILogger<ApiController> logger, IConfiguration configuration, IEnumerable<GraphApi> graphApis) => 
+            (this.logger, this.configuration, this.graphApis) = (logger, configuration, graphApis.ToArray());
 
         /// <summary>
         /// 執行 api 服務

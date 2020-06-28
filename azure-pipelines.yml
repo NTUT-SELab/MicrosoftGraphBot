@@ -37,8 +37,6 @@ stages:
     pool:
       vmImage: 'windows-latest'
     steps:
-    - template: azure_templates/build.yml
-
     - task: Visual Studio IntelliCode Team Model Training@0
       inputs:
         branch: 'master'

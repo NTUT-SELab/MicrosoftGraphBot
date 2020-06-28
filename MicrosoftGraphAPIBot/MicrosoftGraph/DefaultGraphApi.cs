@@ -129,7 +129,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <summary>
         /// Reflash o365 user token.
         /// </summary>
-        /// <param name="reflash_token"> The refresh_token that you acquired during the token request. </param>
+        /// <param name="appAuth"> O365 App auth object </param>
         /// <returns> (access token, 別名) </returns>
         public async Task<(string, string)> ReflashTokenAsync(AppAuth appAuth)
         {

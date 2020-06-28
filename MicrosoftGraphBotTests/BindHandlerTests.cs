@@ -19,7 +19,7 @@ namespace MicrosoftGraphBotTests
         public async Task TestGetAuthUrlAsync()
         {
             Guid clientId = Guid.NewGuid();
-            var mocks = Utils.CreateDefaultGraphApiMock(string.Empty, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(string.Empty);
             await Utils.SetOneValueDbContextAsync(clientId);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
@@ -38,7 +38,7 @@ namespace MicrosoftGraphBotTests
         {
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "ValidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
-            var mocks = Utils.CreateDefaultGraphApiMock(json, Guid.Empty);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
 
@@ -67,7 +67,7 @@ namespace MicrosoftGraphBotTests
         {
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
-            var mocks = Utils.CreateDefaultGraphApiMock(json, Guid.Empty);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
 
@@ -88,7 +88,7 @@ namespace MicrosoftGraphBotTests
         {
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
-            var mocks = Utils.CreateDefaultGraphApiMock(json, Guid.Empty);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
 
@@ -109,7 +109,7 @@ namespace MicrosoftGraphBotTests
         {
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidApplicationResult.json");
             string json = File.ReadAllText(testResultPath);
-            var mocks = Utils.CreateDefaultGraphApiMock(json, Guid.Empty);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
 
@@ -158,7 +158,7 @@ namespace MicrosoftGraphBotTests
             jObject["access_token"] = token;
             json = JsonConvert.SerializeObject(jObject);
             Guid clientId = Guid.NewGuid();
-            var mocks = Utils.CreateDefaultGraphApiMock(json, clientId);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             await Utils.SetOneValueDbContextAsync(clientId);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);

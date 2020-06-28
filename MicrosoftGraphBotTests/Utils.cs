@@ -15,18 +15,23 @@ namespace MicrosoftGraphBotTests
 {
     public static class Utils
     {
+        private static string accessToken = string.Empty;
+
         public static async Task<string> GetTestToken()
         {
-            Uri tokenUrl = new Uri("https://raw.githubusercontent.com/NTUT-SELab/MicrosoftGraphToken/master/Token.txt");
+            if (accessToken == string.Empty)
+            {
+                Uri tokenUrl = new Uri("https://raw.githubusercontent.com/NTUT-SELab/MicrosoftGraphToken/master/Token.txt");
 
-            using HttpClient httpClient = new HttpClient();
-            string json = await httpClient.GetStringAsync(tokenUrl);
-            string reflashToken = JObject.Parse(json)["access_token"].ToString();
+                using HttpClient httpClient = new HttpClient();
+                string json = await httpClient.GetStringAsync(tokenUrl);
+                accessToken = JObject.Parse(json)["access_token"].ToString();
+            }
 
-            return reflashToken;
+            return accessToken;
         }
 
-        public static (ILogger<DefaultGraphApi>, IHttpClientFactory) CreateDefaultGraphApiMock(string json, Guid clientId)
+        public static (ILogger<DefaultGraphApi>, IHttpClientFactory) CreateDefaultGraphApiMock(string json)
         {
             var loggerMock = new Mock<ILogger<DefaultGraphApi>>();
 

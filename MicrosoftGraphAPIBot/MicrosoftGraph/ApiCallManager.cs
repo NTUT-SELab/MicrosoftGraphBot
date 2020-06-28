@@ -51,12 +51,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IEnumerable<(string, string)> accessTokens = await Task.WhenAll(accessTokenTasks);
                 db.AppAuths.UpdateRange(appAuths);
                 Task<int> saveChangeTask = db.SaveChangesAsync();
-                saveChangeTask.Start();
 
                 IEnumerable<Task<string>> callApiTasks = accessTokens.Select(accessToken => CallApi(accessToken.Item1, accessToken.Item2));
                 IEnumerable<string> callApiResults = await Task.WhenAll(callApiTasks);
 
-                saveChangeTask.Wait();
+                await saveChangeTask;
                 logger.LogInformation($"user: {userId}, Api呼叫執行完成");
                 return (userId, string.Join('\n', callApiResults));
             }
@@ -79,7 +78,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// App can use this token to call Microsoft Graph. </param>
         /// <param name="authName"> token 別名 </param>
         /// <returns> call api result message </returns>
-        public async Task<string> CallApi(string token, string authName)
+        private async Task<string> CallApi(string token, string authName)
         {
             try
             {
