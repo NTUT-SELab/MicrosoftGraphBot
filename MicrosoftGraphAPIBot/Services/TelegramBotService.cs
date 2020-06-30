@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MicrosoftGraphAPIBot.Telegram;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using Telegram.Bot.Args;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace MicrosoftGraphAPIBot.Telegram
+namespace MicrosoftGraphAPIBot.Services
 {
     /// <summary>
     /// Telegram Bot 服務
@@ -27,12 +28,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="logger"></param>
         /// <param name="serviceProvider"></param>
         /// <param name="botClient"></param>
-        public TelegramBotService(ILogger<TelegramBotService> logger, IServiceProvider serviceProvider, ITelegramBotClient botClient)
-        {
-            this.logger = logger;
-            this.serviceProvider = serviceProvider;
-            this.botClient = botClient;
-        }
+        public TelegramBotService(ILogger<TelegramBotService> logger, IServiceProvider serviceProvider, ITelegramBotClient botClient) =>
+            (this.logger, this.serviceProvider, this.botClient) = (logger, serviceProvider, botClient);
 
         /// <summary>
         /// 啟動服務

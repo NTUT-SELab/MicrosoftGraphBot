@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
+using MicrosoftGraphAPIBot.Services;
 using MicrosoftGraphAPIBot.Telegram;
 using Telegram.Bot;
 
@@ -29,12 +30,7 @@ namespace MicrosoftGraphAPIBot
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    string SQLHost = hostContext.Configuration["MSSQL:Host"];
-                    string SQLPort = hostContext.Configuration["MSSQL:Port"];
-                    string SQLUser = hostContext.Configuration["MSSQL:User"];
-                    string SQLPassword = hostContext.Configuration["MSSQL:Password"];
-                    string SQLDataBase = hostContext.Configuration["MSSQL:DataBase"];
-                    string DBConnection = string.Format("Data Source={0},{1};Initial Catalog={2};User ID={3};Password={4}", SQLHost, SQLPort, SQLDataBase, SQLUser, SQLPassword);
+                    string DBConnection = Utils.GetDBConnection(hostContext.Configuration);
                     services.AddDbContext<BotDbContext>(options =>
                     {
                         options.UseSqlServer(DBConnection);
@@ -44,11 +40,13 @@ namespace MicrosoftGraphAPIBot
                     services.AddScoped<BindHandler>();
                     services.AddScoped<GraphApi, OutlookApi>();
                     services.AddTransient<ApiController>();
+                    services.AddScoped<ApiCallManager>();
                     services.AddScoped<DefaultGraphApi>();
                     services.AddScoped<TelegramHandler>();
                     services.AddScoped<TelegramCommandGenerator>();
-                    services.AddHostedService<Startup>();
+                    services.AddHostedService<StartupService>();
                     services.AddHostedService<TelegramBotService>();
+                    services.AddHostedService<ApiCallService>();
                 });
     }
 }

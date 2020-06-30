@@ -6,12 +6,12 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MicrosoftGraphAPIBot
+namespace MicrosoftGraphAPIBot.Services
 {
     /// <summary>
     /// 程式初始化用的服務
     /// </summary>
-    public class Startup : IHostedService
+    public class StartupService : IHostedService
     {
         private readonly IHost host;
         private readonly ILogger logger;
@@ -23,12 +23,8 @@ namespace MicrosoftGraphAPIBot
         /// <param name="host"></param>
         /// <param name="logger"></param>
         /// <param name="botDbContext"></param>
-        public Startup(IHost host, ILogger<Startup> logger, BotDbContext botDbContext)
-        {
-            this.host = host;
-            this.logger = logger;
-            this.db = botDbContext;
-        }
+        public StartupService(IHost host, ILogger<StartupService> logger, BotDbContext botDbContext) =>
+            (this.host, this.logger, this.db) = (host, logger, botDbContext);
 
         /// <summary>
         /// 啟動服務
@@ -37,11 +33,10 @@ namespace MicrosoftGraphAPIBot
         /// <returns></returns>
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            logger.LogInformation("Startup service is starting.");
-
             try
             {
                 db.Database.Migrate();
+                logger.LogInformation("Startup service is starting.");
             }
             catch (Exception ex)
             {
