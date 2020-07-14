@@ -49,8 +49,9 @@ namespace MicrosoftGraphBotTests
             string email = "test@onmicrosoft.com";
             Guid clientId = Guid.NewGuid();
             string clientSecret = "741852963";
+            string appName = "app1";
 
-            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret);
+            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret, appName);
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
             AzureApp azureApp = await db.AzureApps.Include(azureApp => azureApp.TelegramUser).FirstAsync();
@@ -59,6 +60,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(email, azureApp .Email);
             Assert.AreEqual(clientId, azureApp.Id);
             Assert.AreEqual(clientSecret, azureApp.Secrets);
+            Assert.AreEqual(appName, azureApp.Name);
         }
 
         [ExpectedException(typeof(InvalidOperationException))]
@@ -78,8 +80,9 @@ namespace MicrosoftGraphBotTests
             string email = "test@onmicrosoft.com";
             Guid clientId = Guid.NewGuid();
             string clientSecret = "741852963";
+            string appName = "app1";
 
-            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret);
+            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret, appName);
         }
 
         [ExpectedException(typeof(InvalidOperationException))]
@@ -99,8 +102,9 @@ namespace MicrosoftGraphBotTests
             string email = "onmicrosoft.com";
             Guid clientId = Guid.NewGuid();
             string clientSecret = "741852963";
+            string appName = "app1";
 
-            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret);
+            await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret, appName);
         }
 
         [ExpectedException(typeof(InvalidOperationException))]
@@ -120,8 +124,9 @@ namespace MicrosoftGraphBotTests
             string email = "test@onmicrosoft.com";
             string clientId = "1da2d3as3d1321ad3a";
             string clientSecret = "741852963";
+            string appName = "app1";
 
-            await bindHandler.RegAppAsync(userId, userName, email, clientId, clientSecret);
+            await bindHandler.RegAppAsync(userId, userName, email, clientId, clientSecret, appName);
         }
 
         [TestMethod]
@@ -142,15 +147,15 @@ namespace MicrosoftGraphBotTests
 
             BindHandler bindHandler = new BindHandler(db, null);
             var appsInfo = (await bindHandler.GetAppsInfoAsync(123456789)).ToList();
-            Assert.IsTrue((appsInfo[0].Item2 - DateTime.Now).TotalSeconds < 1);
-            Assert.IsTrue((appsInfo[1].Item2 - DateTime.Now).TotalSeconds < 1);
+            Assert.AreEqual(appsInfo[0].Item2, "App1");
+            Assert.AreEqual(appsInfo[1].Item2, "App2");
         }
 
         [TestMethod]
         public async Task TestBindAuthAsync()
         {
             string token = await Utils.GetTestToken();
-            string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "AuthResponse.txt");
+            string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "ValidAuthResponse.json");
             string authResponse = File.ReadAllText(authResponsePath);
             string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenSuccessResult.json");
             string json = File.ReadAllText(testResultPath);
@@ -172,9 +177,29 @@ namespace MicrosoftGraphBotTests
             Assert.IsTrue(await db.AppAuths.AsQueryable().AnyAsync(appAuth => appAuth.Name == name));
         }
 
-        [ExpectedException(typeof(UriFormatException))]
+        [ExpectedException(typeof(InvalidOperationException))]
         [TestMethod]
-        public async Task TestBindAutErrorUrlAsync()
+        public async Task TestBindAutInvalidAuthAsync()
+        {
+            string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidAuthResponse.json");
+            string authResponse = File.ReadAllText(authResponsePath);
+
+            BindHandler bindHandler = new BindHandler(null, null);
+            await bindHandler.BindAuthAsync(Guid.Empty.ToString(), authResponse, string.Empty);
+        }
+
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public async Task TestBindAutInvalidJsonAsync()
+        {
+            string authResponse = @"{ ""Hi"": ""123"" }";
+            BindHandler bindHandler = new BindHandler(null, null);
+            await bindHandler.BindAuthAsync(Guid.Empty.ToString(), authResponse, string.Empty);
+        }
+
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public async Task TestBindAutErrorFormatAsync()
         {
             BindHandler bindHandler = new BindHandler(null, null);
             await bindHandler.BindAuthAsync(Guid.Empty.ToString(), string.Empty, string.Empty);

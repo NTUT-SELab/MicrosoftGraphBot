@@ -26,6 +26,7 @@ namespace MicrosoftGraphAPIBot.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
                     Secrets = table.Column<string>(nullable: false),
                     Email = table.Column<string>(nullable: false),
                     Date = table.Column<DateTime>(nullable: false),

@@ -30,8 +30,8 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: command + "\n" +
-                    "[office365帳號] [Application (client) ID] [Client secrets]" + "\n" +
-                    "範例: AAA@BBB.onmicrosoft.com 9a448485-16dd-49c3-b4be-d8b7e138db27 lyfJ7f4k=9:qA?e:huHchb0pcBhMuk@b]" + "\n" +
+                    "[office365帳號] [Application (client) ID] [Client secrets] [應用程式別名 (用於管理)]" + "\n" +
+                    "範例: AAA@BBB.onmicrosoft.com 9a448485-16dd-49c3-b4be-d8b7e138db27 lyfJ7f4k=9:qA?e:huHchb0pcBhMuk@b App1]" + "\n" +
                     "備註: 每個項目請用空格分開",
                 replyMarkup: new ForceReplyMarkup());
         }
@@ -46,22 +46,24 @@ namespace MicrosoftGraphAPIBot.Telegram
             try
             {
                 string[] userMessages = message.Text.Split(' ');
-                if (userMessages.Length != 3)
+                if (userMessages.Length != 4)
                     throw new InvalidOperationException("輸入格式錯誤");
-                await bindHandler.RegAppAsync(message.Chat.Id, message.Chat.Username, userMessages[0], userMessages[1], userMessages[2]);
+                await bindHandler.RegAppAsync(message.Chat.Id, message.Chat.Username, userMessages[0], userMessages[1], userMessages[2], userMessages[3]);
 
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: "應用程式註冊成功");
+
+                await BindUserAuth(message);
             }
             catch(Exception ex)
             {
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: ex.Message);
-            }
 
-            await Bind(message);
+                await Bind(message);
+            }
         }
 
         /// <summary>
@@ -93,7 +95,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task BindUserAuth(Message message)
         {
-            IEnumerable<(Guid, DateTime)> appsInfo = await bindHandler.GetAppsInfoAsync(message.Chat.Id);
+            IEnumerable<(Guid, string)> appsInfo = await bindHandler.GetAppsInfoAsync(message.Chat.Id);
 
             IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
             var keyboardMarkup = new InlineKeyboardMarkup(keyboardButtons);
@@ -129,8 +131,8 @@ namespace MicrosoftGraphAPIBot.Telegram
                 chatId: callbackQuery.From.Id,
                 text: command + "\n" +
                     $"應用程式Id: {auth.Item1}" + "\n" +
-                    "[重新導向的網址] [別名 (用於管理)]" + "\n" +
-                    $"範例: {BindHandler.AppUrl}... Auth1" + "\n" +
+                    "[網頁內容] [授權別名 (用於管理)]" + "\n" +
+                    @"範例: {""code"":""asf754...""} Auth1" + "\n" +
                     "備註: 每個項目請用空格分開",
                 replyMarkup: new ForceReplyMarkup());
         }

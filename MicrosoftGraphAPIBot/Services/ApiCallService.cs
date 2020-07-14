@@ -27,15 +27,14 @@ namespace MicrosoftGraphAPIBot.Services
             try
             {
                 StartReceiving();
+                isStart = true;
+                logger.LogInformation("Api call service is starting.");
             }
             catch(Exception ex)
             {
                 logger.LogError(ex.Message);
                 await host.StopAsync().ConfigureAwait(false);
             }
-            
-            isStart = true;
-            logger.LogInformation("Api call service is starting.");
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

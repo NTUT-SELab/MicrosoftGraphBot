@@ -7,6 +7,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using Newtonsoft.Json.Linq;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
@@ -16,7 +17,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     public class BindHandler
     {
         private static readonly string appName = Guid.NewGuid().ToString();
-        public const string AppUrl = "https://localhost:44375/";
+        public const string AppUrl = "https://msgraphauthorization.azurewebsites.net/authcode/";
         private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
 
@@ -56,7 +57,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="clientId"> Application (client) ID </param>
         /// <param name="clientSecret"> Client secrets </param>
         /// <returns></returns>
-        public async Task RegAppAsync(long userId, string userName, string email, string clientId, string clientSecret)
+        public async Task RegAppAsync(long userId, string userName, string email, string clientId, string clientSecret, string appName)
         {
             if (!IsValidEmail(email))
                 throw new InvalidOperationException("信箱格式錯誤");
@@ -74,6 +75,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
             db.AzureApps.Add(new AzureApp { 
                 Id = appId,
+                Name = appName,
                 Secrets = clientSecret,
                 Email = email,
                 TelegramUser = telegramUser
@@ -108,31 +110,41 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// 取得指定 Telegram 使用者註冊的應用程式 Id
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
-        /// <returns> 應用程式Guid </returns>
-        public async Task<IEnumerable<(Guid, DateTime)>> GetAppsInfoAsync(long userId)
+        /// <returns> 應用程式別名 </returns>
+        public async Task<IEnumerable<(Guid, string)>> GetAppsInfoAsync(long userId)
         {
-            var appInfo = await db.AzureApps.AsQueryable()
+            var appInfos = await db.AzureApps.AsQueryable()
                 .Where(app => app.TelegramUser.Id == userId)
-                .Select(app => new { app.Id, app.Date })
+                .Select(app => new { app.Id, app.Name })
                 .ToListAsync();
-            return appInfo.Select(app => (app.Id, app.Date));
+            return appInfos.Select(app => (app.Id, app.Name));
         }
 
         /// <summary>
         /// 對指定應用程式取得 o365 帳號授權
         /// </summary>
         /// <param name="clientId"> Application (client) ID </param>
-        /// <param name="code"> The authorization_code that the app requested. 
-        /// The app can use the authorization code to request an access token for the target resource. 
-        /// Authorization_codes are very short lived, typically they expire after about 10 minutes. </param>
+        /// <param name="json"> 含有 Code 訊息的 json 字串 </param>
         /// <param name="name"> 授權別名 </param>
         /// <returns></returns>
-        public async Task BindAuthAsync(string clientId, string authResponse, string name)
+        public async Task BindAuthAsync(string clientId, string json, string name)
         {
-            Uri responseUrl = new Uri(authResponse);
-            string code = HttpUtility.ParseQueryString(responseUrl.Query).Get("code");
+
+            JObject jObject;
+            try
+            {
+                jObject = JObject.Parse(json);
+            }
+            catch
+            {
+                throw new InvalidOperationException("網頁內容格式錯誤");
+            }
+            if (jObject.Property("code") == null && jObject.Property("error") != null)
+                throw new InvalidOperationException(jObject["error"].ToString());
+            if (jObject.Property("code") == null && jObject.Property("error") == null)
+                throw new InvalidOperationException("網頁內容缺少必要訊息");
             Guid appId = Guid.Parse(clientId);
-            (string, string) tokens = await defaultGraphApi.GetTokenAsync(appId, code);
+            (string, string) tokens = await defaultGraphApi.GetTokenAsync(appId, jObject["code"].ToString());
             await DefaultGraphApi.GetUserInfoAsync(tokens.Item1);
 
             db.AppAuths.Add(new AppAuth { 
@@ -143,6 +155,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             });
 
             await db.SaveChangesAsync();
+        }
+
+        private Exception InvalidOperationException(JToken jTokens)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

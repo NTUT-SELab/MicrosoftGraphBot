@@ -21,11 +21,12 @@ namespace MicrosoftGraphAPIBot
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(logging =>
                 {
-                    logging.AddFile("Logs/{Date}.txt");
 #if DEBUG
                     logging.SetMinimumLevel(LogLevel.Debug);
+                    logging.AddFile("Logs/{Date}.txt", LogLevel.Debug);
 #else
                     logging.SetMinimumLevel(LogLevel.Information);
+                    logging.AddFile("Logs/{Date}.txt", LogLevel.Information);
 #endif
                 })
                 .ConfigureServices((hostContext, services) =>
