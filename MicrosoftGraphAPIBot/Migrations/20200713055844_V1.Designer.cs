@@ -10,7 +10,7 @@ using MicrosoftGraphAPIBot.Models;
 namespace MicrosoftGraphAPIBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20200712144549_V1")]
+    [Migration("20200713055844_V1")]
     partial class V1
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -17,12 +17,14 @@ namespace MicrosoftGraphAPIBot.Models
             modelBuilder.Entity<AzureApp>()
                 .HasOne(app => app.TelegramUser)
                 .WithMany(user => user.AzureApps)
-                .HasForeignKey(app => app.TelegramUserId);
+                .HasForeignKey(app => app.TelegramUserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<AppAuth>()
                 .HasOne(auth => auth.AzureApp)
                 .WithMany(app => app.AppAuths)
-                .HasForeignKey(auth => auth.AzureAppId);
+                .HasForeignKey(auth => auth.AzureAppId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
 
         public virtual DbSet<TelegramUser> TelegramUsers { get; set; }

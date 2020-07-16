@@ -130,6 +130,23 @@ namespace MicrosoftGraphBotTests
         }
 
         [TestMethod]
+        public async Task TestDeleteAppAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid clientId1 = await db.AzureApps.AsQueryable().Select(app => app.Id).FirstAsync();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            string deleteUrl = await bindHandler.DeleteAppAsync(clientId1.ToString());
+
+            Assert.AreEqual(deleteUrl, string.Format(BindHandler.DeleteUrl, clientId1.ToString()));
+            Assert.AreEqual(await db.AzureApps.AsQueryable().CountAsync(), 2);
+            Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
+        }
+
+        [TestMethod]
         public async Task TestAppCountAsync()
         {
             await Utils.SetDefaultValueDbContextAsync();
@@ -140,15 +157,43 @@ namespace MicrosoftGraphBotTests
         }
 
         [TestMethod]
-        public async Task TestGetAppsInfoAsync()
+        public async Task TestAuthCountAsync()
         {
             await Utils.SetDefaultValueDbContextAsync();
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             BindHandler bindHandler = new BindHandler(db, null);
-            var appsInfo = (await bindHandler.GetAppsInfoAsync(123456789)).ToList();
+            Assert.AreEqual(1, await bindHandler.AuthCountAsync(123456789));
+        }
+
+        [TestMethod]
+        public async Task TestGetAppsNameAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            var appsInfo = (await bindHandler.GetAppsNameAsync(123456789)).ToList();
             Assert.AreEqual(appsInfo[0].Item2, "App1");
             Assert.AreEqual(appsInfo[1].Item2, "App2");
+        }
+
+        [TestMethod]
+        public async Task TestGetAppInfoAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid clientId1 = await db.AzureApps.AsQueryable().Select(app => app.Id).FirstAsync();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            var appsInfo = (await bindHandler.GetAppInfoAsync(clientId1.ToString()));
+            Assert.AreEqual(appsInfo.Name, "App1");
+            Assert.AreEqual(appsInfo.Email, "test@onmicrosoft.com");
+            Assert.AreEqual(appsInfo.Secrets, string.Empty);
+            Assert.AreEqual(appsInfo.TelegramUserId, 123456789);
+            Assert.AreEqual(appsInfo.Id, clientId1);
         }
 
         [TestMethod]

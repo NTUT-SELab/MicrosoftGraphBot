@@ -71,7 +71,12 @@ namespace MicrosoftGraphAPIBot.Telegram
             List<string> commands = new List<string> { TelegramCommand.RegApp };
 
             if (await bindHandler.AppCountAsync(userId) > 0)
+            {
                 commands.AddRange(new List<string> { TelegramCommand.DeleteApp, TelegramCommand.QueryApp, TelegramCommand.BindAuth });
+
+                if (await bindHandler.AuthCountAsync(userId) > 0)
+                    commands.AddRange(new List<string> { TelegramCommand.UnbindAuth, TelegramCommand.QueryAuth });
+            }
 
             return commands.Select(command => (command, instructions[command]));
         }

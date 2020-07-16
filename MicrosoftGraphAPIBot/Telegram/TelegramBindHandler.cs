@@ -1,4 +1,5 @@
 ﻿using MicrosoftGraphAPIBot.MicrosoftGraph;
+using MicrosoftGraphAPIBot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -68,22 +69,81 @@ namespace MicrosoftGraphAPIBot.Telegram
 
         /// <summary>
         /// 刪除本地應用程式紀錄，並回傳 azure 應用程式網頁，讓使用者手動刪除應用程式
+        /// 
+        /// 提供使用者選擇應用程式
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task DeleteApp(Message message)
         {
+            var keyboardMarkup = await GetUserAppsNameAsync(message.Chat.Id);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: command + "\n" +
+                    "選擇要刪除的應用程式",
+                replyMarkup: keyboardMarkup);
+        }
+
+        /// <summary>
+        /// 刪除本地應用程式紀錄，並回傳 azure 應用程式網頁，讓使用者手動刪除應用程式
+        /// 
+        /// 執行刪除動作
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task DeleteAppCallback(CallbackQuery callbackQuery)
+        {
+            string deleteUrl = await bindHandler.DeleteAppAsync(callbackQuery.Data);
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: $"本地應用程式關聯已刪除，請點擊後方連結至 Azure 刪除應用程式: [Azure 應用程式連結]({deleteUrl})",
+                ParseMode.MarkdownV2);
         }
 
         /// <summary>
         /// 查詢已註冊的azure應用程式
+        /// 
+        /// 提供使用者選擇應用程式
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task QueryApp(Message message)
         {
+            var keyboardMarkup = await GetUserAppsNameAsync(message.Chat.Id);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: command + "\n" +
+                    "選擇要查詢的應用程式",
+                replyMarkup: keyboardMarkup);
+        }
+
+        /// <summary>
+        /// 查詢已註冊的azure應用程式
+        /// 
+        /// 列出應用程式詳細訊息
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task QueryAppCallback(CallbackQuery callbackQuery)
+        {
+            AzureApp app = await bindHandler.GetAppInfoAsync(callbackQuery.Data);
+            string[] infos = new string[] { 
+                $"應用程式 (用戶端) 識別碼: {app.Id}",
+                $"應用程式別名: {app.Name}",
+                $"Client secrets: {app.Secrets}",
+                $"註冊應用程式使用的信箱: {app.Email}",
+                $"註冊應用程式時間: {app.Date}"
+            };
+            string text = string.Join('\n', infos);
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: text);
         }
 
         /// <summary>
@@ -95,11 +155,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task BindUserAuth(Message message)
         {
-            IEnumerable<(Guid, string)> appsInfo = await bindHandler.GetAppsInfoAsync(message.Chat.Id);
-
-            IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
-            var keyboardMarkup = new InlineKeyboardMarkup(keyboardButtons);
-
+            var keyboardMarkup = await GetUserAppsNameAsync(message.Chat.Id);
             string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
             await botClient.SendTextMessageAsync(
@@ -207,6 +263,19 @@ namespace MicrosoftGraphAPIBot.Telegram
                                                     (c.Value.Item3 != null && c.Value.Item3.Method.Name == methodName)).Key;
 
             return command;
+        }
+
+        /// <summary>
+        /// 取得 Telegram 使用者已註冊應用程式的名稱
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <returns></returns>
+        private async Task<InlineKeyboardMarkup> GetUserAppsNameAsync(long userId)
+        {
+            IEnumerable<(Guid, string)> appsInfo = await bindHandler.GetAppsNameAsync(userId);
+
+            IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
+            return new InlineKeyboardMarkup(keyboardButtons);
         }
     }
 }

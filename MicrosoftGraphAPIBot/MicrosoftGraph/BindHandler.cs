@@ -18,6 +18,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         private static readonly string appName = Guid.NewGuid().ToString();
         public const string AppUrl = "https://msgraphauthorization.azurewebsites.net/authcode/";
+        public const string DeleteUrl = "https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/{0}/isMSAApp/";
         private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
 
@@ -95,6 +96,20 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         }
 
         /// <summary>
+        /// 刪除 Azure 應用程式
+        /// </summary>
+        /// <param name="clientId"> Application (client) ID </param>
+        /// <returns></returns>
+        public async Task<string> DeleteAppAsync(string clientId)
+        {
+            AzureApp azureApp = await db.AzureApps.Include(app => app.AppAuths).FirstAsync(app => app.Id == Guid.Parse(clientId));
+            db.Remove(azureApp);
+            await db.SaveChangesAsync();
+
+            return string.Format(DeleteUrl, clientId);
+        }
+
+        /// <summary>
         /// 取得指定 Telegram 使用者註冊的應用程式數量
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
@@ -102,22 +117,47 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public async Task<int> AppCountAsync(long userId)
         {
             return await db.AzureApps.AsQueryable()
-                .Where(app => app.TelegramUser.Id == userId)
+                .Where(app => app.TelegramUserId == userId)
                 .CountAsync();
         }
 
         /// <summary>
-        /// 取得指定 Telegram 使用者註冊的應用程式 Id
+        /// 取得指定 Telegram 使用者綁定的授權數量
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <returns> 授權數量 </returns>
+        public async Task<int> AuthCountAsync(long userId)
+        {
+            return await db.AppAuths.AsQueryable()
+                .Where(auth => auth.AzureApp.TelegramUserId == userId)
+                .CountAsync();
+        }
+
+        /// <summary>
+        /// 取得指定 Telegram 使用者註冊的應用程式別名
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
         /// <returns> 應用程式別名 </returns>
-        public async Task<IEnumerable<(Guid, string)>> GetAppsInfoAsync(long userId)
+        public async Task<IEnumerable<(Guid, string)>> GetAppsNameAsync(long userId)
         {
             var appInfos = await db.AzureApps.AsQueryable()
                 .Where(app => app.TelegramUser.Id == userId)
                 .Select(app => new { app.Id, app.Name })
                 .ToListAsync();
             return appInfos.Select(app => (app.Id, app.Name));
+        }
+
+        /// <summary>
+        /// 取得指定的應用程式資訊
+        /// </summary>
+        /// <param name="AppId"> 應用程式 id </param>
+        /// <returns> 應用程式資訊 </returns>
+        public async Task<AzureApp> GetAppInfoAsync(string appId)
+        {
+            Guid id = Guid.Parse(appId);
+            var appInfo = await db.AzureApps.FindAsync(id);
+
+            return appInfo;
         }
 
         /// <summary>
@@ -155,11 +195,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             });
 
             await db.SaveChangesAsync();
-        }
-
-        private Exception InvalidOperationException(JToken jTokens)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
