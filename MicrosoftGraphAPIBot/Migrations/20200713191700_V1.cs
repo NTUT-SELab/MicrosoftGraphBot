@@ -29,7 +29,7 @@ namespace MicrosoftGraphAPIBot.Migrations
                     Name = table.Column<string>(nullable: false),
                     Secrets = table.Column<string>(nullable: false),
                     Email = table.Column<string>(nullable: false),
-                    Date = table.Column<DateTime>(nullable: false),
+                    RegTime = table.Column<DateTime>(nullable: false),
                     TelegramUserId = table.Column<long>(nullable: false)
                 },
                 constraints: table =>
@@ -51,7 +51,8 @@ namespace MicrosoftGraphAPIBot.Migrations
                     Name = table.Column<string>(nullable: false),
                     RefreshToken = table.Column<string>(nullable: false),
                     Scope = table.Column<string>(nullable: false),
-                    Date = table.Column<DateTime>(nullable: false),
+                    BindTime = table.Column<DateTime>(nullable: false),
+                    UpdateTime = table.Column<DateTime>(nullable: false),
                     AzureAppId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>

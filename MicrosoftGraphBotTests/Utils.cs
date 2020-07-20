@@ -85,8 +85,8 @@ namespace MicrosoftGraphBotTests
             db.AzureApps.Add(new AzureApp { Id = clientId1, Email = "test@onmicrosoft.com", Secrets = string.Empty, TelegramUserId = 123456789, Name = "App1" });
             db.AzureApps.Add(new AzureApp { Id = clientId2, Email = "test5@onmicrosoft.com", Secrets = string.Empty, TelegramUserId = 123456789, Name = "App2" });
             db.AzureApps.Add(new AzureApp { Id = clientId3, Email = "test1@onmicrosoft.com", Secrets = string.Empty, TelegramUserId = 987654321, Name = "App3" });
-            db.AppAuths.Add(new AppAuth { Name = "test", RefreshToken = string.Empty, Scope = DefaultGraphApi.Scope, AzureAppId = clientId1 });
-            db.AppAuths.Add(new AppAuth { Name = "test1", RefreshToken = string.Empty, Scope = DefaultGraphApi.Scope, AzureAppId = clientId3 });
+            db.AppAuths.Add(new AppAuth { Name = "Auth1", RefreshToken = string.Empty, Scope = DefaultGraphApi.Scope, AzureAppId = clientId1 });
+            db.AppAuths.Add(new AppAuth { Name = "Auth3", RefreshToken = string.Empty, Scope = DefaultGraphApi.Scope, AzureAppId = clientId3 });
 
             await db.SaveChangesAsync();
         }

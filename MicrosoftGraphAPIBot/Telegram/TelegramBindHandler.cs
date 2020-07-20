@@ -104,7 +104,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
-        /// 查詢已註冊的azure應用程式
+        /// 查詢已註冊的 azure 應用程式
         /// 
         /// 提供使用者選擇應用程式
         /// </summary>
@@ -123,7 +123,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
-        /// 查詢已註冊的azure應用程式
+        /// 查詢已註冊的 azure 應用程式
         /// 
         /// 列出應用程式詳細訊息
         /// </summary>
@@ -137,7 +137,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 $"應用程式別名: {app.Name}",
                 $"Client secrets: {app.Secrets}",
                 $"註冊應用程式使用的信箱: {app.Email}",
-                $"註冊應用程式時間: {app.Date}"
+                $"註冊應用程式時間: {app.RegTime}"
             };
             string text = string.Join('\n', infos);
 
@@ -226,22 +226,81 @@ namespace MicrosoftGraphAPIBot.Telegram
 
         /// <summary>
         /// 刪除指定應用程式的 o365 使用者授權
+        /// 
+        /// 提供使用者選擇 o365 使用者授權
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task UnbindUserAuth(Message message)
         {
+            var keyboardMarkup = await GetUserAuthsNameAsync(message.Chat.Id);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: command + "\n" +
+                    "選擇要刪除的授權",
+                replyMarkup: keyboardMarkup);
+        }
+
+        /// <summary>
+        /// 刪除指定應用程式的 o365 使用者授權
+        /// 
+        /// 執行刪除動作
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task UnbindUserAuthCallback(CallbackQuery callbackQuery)
+        {
+            await bindHandler.UnbindAuthAsync(callbackQuery.Data);
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: $"已成功刪除應用程式授權");
         }
 
         /// <summary>
         /// 查詢使用者的所有 o365 授權
+        /// 
+        /// 提供使用者選擇 o365 授權
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task QueryUserAuth(Message message)
         {
+            var keyboardMarkup = await GetUserAuthsNameAsync(message.Chat.Id);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: command + "\n" +
+                    "選擇要查詢的授權",
+                replyMarkup: keyboardMarkup);
+        }
+
+        /// <summary>
+        /// 查詢使用者的所有 o365 授權
+        /// 
+        /// 列出 o365 授權的詳細訊息
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task QueryUserAuthCallback(CallbackQuery callbackQuery)
+        {
+            AppAuth auth = await bindHandler.GetAuthInfoAsync(callbackQuery.Data);
+            string[] infos = new string[] {
+                $"授權識別碼: {auth.Id}",
+                $"授權別名: {auth.Name}",
+                $"Refresh token: {auth.RefreshToken}",
+                $"Scope: {auth.Scope}",
+                $"綁定時間: {auth.BindTime}",
+                $"Token 更新的時間: {auth.UpdateTime}"
+            };
+            string text = string.Join('\n', infos);
+
+            await botClient.SendTextMessageAsync(
+                chatId: callbackQuery.From.Id,
+                text: text);
         }
 
         /// <summary>
@@ -266,7 +325,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
-        /// 取得 Telegram 使用者已註冊應用程式的名稱
+        /// 取得 Telegram 使用者已註冊的應用程式名稱
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
         /// <returns></returns>
@@ -275,6 +334,19 @@ namespace MicrosoftGraphAPIBot.Telegram
             IEnumerable<(Guid, string)> appsInfo = await bindHandler.GetAppsNameAsync(userId);
 
             IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
+            return new InlineKeyboardMarkup(keyboardButtons);
+        }
+
+        /// <summary>
+        /// 取得 Telegram 使用者綁定的授權名稱
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <returns></returns>
+        private async Task<InlineKeyboardMarkup> GetUserAuthsNameAsync(long userId)
+        {
+            IEnumerable<(Guid, string)> authsInfo = await bindHandler.GetAuthsNameAsync(userId);
+
+            IEnumerable<InlineKeyboardButton> keyboardButtons = authsInfo.Select(authInfo => InlineKeyboardButton.WithCallbackData(authInfo.Item2.ToString(), authInfo.Item1.ToString()));
             return new InlineKeyboardMarkup(keyboardButtons);
         }
     }

@@ -28,7 +28,7 @@ namespace MicrosoftGraphAPIBot.Migrations
                     b.Property<Guid>("AzureAppId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("Date")
+                    b.Property<DateTime>("BindTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
@@ -43,6 +43,9 @@ namespace MicrosoftGraphAPIBot.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("UpdateTime")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AzureAppId");
@@ -56,9 +59,6 @@ namespace MicrosoftGraphAPIBot.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -66,6 +66,9 @@ namespace MicrosoftGraphAPIBot.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("RegTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Secrets")
                         .IsRequired()

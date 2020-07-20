@@ -155,6 +155,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 logger.LogInformation($"授權名稱: {appAuth.Name}, Reflash Token: Success");
                 appAuth.RefreshToken = jObject["refresh_token"].ToString();
+                appAuth.UpdateTime = DateTime.Now;
                 return (jObject["access_token"].ToString(), appAuth.Name);
             }
 

@@ -8,7 +8,7 @@ namespace MicrosoftGraphAPIBot.Models
     {
         public AzureApp()
         {
-            Date = DateTime.Now;
+            RegTime = DateTime.Now;
             this.AppAuths = new List<AppAuth>();
         }
 
@@ -23,7 +23,7 @@ namespace MicrosoftGraphAPIBot.Models
         [EmailAddress]
         public string Email { get; set; }
         [Required]
-        public DateTime Date { get; set; }
+        public DateTime RegTime { get; set; }
 
 
         [Required]
@@ -38,7 +38,8 @@ namespace MicrosoftGraphAPIBot.Models
         public AppAuth()
         {
             this.Id = Guid.NewGuid();
-            this.Date = DateTime.Now;
+            this.BindTime = DateTime.Now;
+            this.UpdateTime = DateTime.Now;
         }
 
         [Key]
@@ -51,7 +52,9 @@ namespace MicrosoftGraphAPIBot.Models
         [Required]
         public string Scope { get; set; }
         [Required]
-        public DateTime Date { get; set; }
+        public DateTime BindTime { get; set; }
+        [Required]
+        public DateTime UpdateTime { get; set; }
 
         [Required]
         public Guid AzureAppId { get; set; }

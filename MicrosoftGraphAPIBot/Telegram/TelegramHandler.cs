@@ -49,8 +49,8 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.DeleteApp, (DeleteApp, null, DeleteAppCallback)},
                 { TelegramCommand.QueryApp, (QueryApp, null, QueryAppCallback) },
                 { TelegramCommand.BindAuth, (BindUserAuth, BindUserAuthReplay, BindUserAuthCallback) },
-                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, null) },
-                { TelegramCommand.QueryAuth, (QueryUserAuth, null, null) }
+                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, UnbindUserAuthCallback) },
+                { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) }
             };
         }
 

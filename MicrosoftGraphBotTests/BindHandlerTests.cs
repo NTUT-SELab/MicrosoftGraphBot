@@ -174,6 +174,7 @@ namespace MicrosoftGraphBotTests
 
             BindHandler bindHandler = new BindHandler(db, null);
             var appsInfo = (await bindHandler.GetAppsNameAsync(123456789)).ToList();
+            Assert.AreEqual(appsInfo.Count(), 2);
             Assert.AreEqual(appsInfo[0].Item2, "App1");
             Assert.AreEqual(appsInfo[1].Item2, "App2");
         }
@@ -188,12 +189,12 @@ namespace MicrosoftGraphBotTests
             db = Utils.CreateMemoryDbContext();
 
             BindHandler bindHandler = new BindHandler(db, null);
-            var appsInfo = (await bindHandler.GetAppInfoAsync(clientId1.ToString()));
-            Assert.AreEqual(appsInfo.Name, "App1");
-            Assert.AreEqual(appsInfo.Email, "test@onmicrosoft.com");
-            Assert.AreEqual(appsInfo.Secrets, string.Empty);
-            Assert.AreEqual(appsInfo.TelegramUserId, 123456789);
-            Assert.AreEqual(appsInfo.Id, clientId1);
+            var appInfo = (await bindHandler.GetAppInfoAsync(clientId1.ToString()));
+            Assert.AreEqual(appInfo.Name, "App1");
+            Assert.AreEqual(appInfo.Email, "test@onmicrosoft.com");
+            Assert.AreEqual(appInfo.Secrets, string.Empty);
+            Assert.AreEqual(appInfo.TelegramUserId, 123456789);
+            Assert.AreEqual(appInfo.Id, clientId1);
         }
 
         [TestMethod]
@@ -224,7 +225,7 @@ namespace MicrosoftGraphBotTests
 
         [ExpectedException(typeof(InvalidOperationException))]
         [TestMethod]
-        public async Task TestBindAutInvalidAuthAsync()
+        public async Task TestBindAuthInvalidAuthAsync()
         {
             string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidAuthResponse.json");
             string authResponse = File.ReadAllText(authResponsePath);
@@ -235,7 +236,7 @@ namespace MicrosoftGraphBotTests
 
         [ExpectedException(typeof(InvalidOperationException))]
         [TestMethod]
-        public async Task TestBindAutInvalidJsonAsync()
+        public async Task TestBindAuthInvalidJsonAsync()
         {
             string authResponse = @"{ ""Hi"": ""123"" }";
             BindHandler bindHandler = new BindHandler(null, null);
@@ -244,10 +245,54 @@ namespace MicrosoftGraphBotTests
 
         [ExpectedException(typeof(InvalidOperationException))]
         [TestMethod]
-        public async Task TestBindAutErrorFormatAsync()
+        public async Task TestBindAuthErrorFormatAsync()
         {
             BindHandler bindHandler = new BindHandler(null, null);
             await bindHandler.BindAuthAsync(Guid.Empty.ToString(), string.Empty, string.Empty);
+        }
+
+        [TestMethod]
+        public async Task TestUnbindAuthAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid authId1 = await db.AppAuths.AsQueryable().Select(app => app.Id).FirstAsync();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            await bindHandler.UnbindAuthAsync(authId1.ToString());
+
+            Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
+        }
+
+        [TestMethod]
+        public async Task TestGetAuthsNameAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            var authsInfo = (await bindHandler.GetAuthsNameAsync(123456789)).ToList();
+            Assert.AreEqual(authsInfo.Count(), 1);
+            Assert.AreEqual(authsInfo[0].Item2, "Auth1");
+        }
+
+        [TestMethod]
+        public async Task TestGetAuthInfoAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid authId1 = await db.AppAuths.AsQueryable().Select(app => app.Id).FirstAsync();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            var authInfo = (await bindHandler.GetAuthInfoAsync(authId1.ToString()));
+            Assert.AreEqual(authInfo.Name, "Auth1");
+            Assert.AreEqual(authInfo.RefreshToken, string.Empty);
+            Assert.AreEqual(authInfo.Scope, DefaultGraphApi.Scope);
+            Assert.AreEqual(authInfo.Id, authId1);
         }
 
         [TestCleanup]
