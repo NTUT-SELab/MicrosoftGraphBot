@@ -146,6 +146,20 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
         }
 
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public async Task TestDeleteNotExistAppAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid clientId1 = Guid.NewGuid();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            string _ = await bindHandler.DeleteAppAsync(clientId1.ToString());
+        }
+
         [TestMethod]
         public async Task TestAppCountAsync()
         {
@@ -264,6 +278,20 @@ namespace MicrosoftGraphBotTests
             await bindHandler.UnbindAuthAsync(authId1.ToString());
 
             Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
+        }
+
+        [ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
+        public async Task TestUnbindNotExistAuthAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            Guid authId1 = Guid.NewGuid();
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+
+            BindHandler bindHandler = new BindHandler(db, null);
+            await bindHandler.UnbindAuthAsync(authId1.ToString());
         }
 
         [TestMethod]

@@ -95,12 +95,21 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task DeleteAppCallback(CallbackQuery callbackQuery)
         {
-            string deleteUrl = await bindHandler.DeleteAppAsync(callbackQuery.Data);
+            try
+            {
+                string deleteUrl = await bindHandler.DeleteAppAsync(callbackQuery.Data);
 
-            await botClient.SendTextMessageAsync(
-                chatId: callbackQuery.From.Id,
-                text: $"本地應用程式關聯已刪除，請點擊後方連結至 Azure 刪除應用程式: [Azure 應用程式連結]({deleteUrl})",
-                ParseMode.MarkdownV2);
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"本地應用程式關聯已刪除，請點擊後方連結至 Azure 刪除應用程式: [Azure 應用程式連結]({deleteUrl})",
+                    ParseMode.MarkdownV2);
+            }
+            catch (Exception ex)
+            {
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: ex.Message);
+            }
         }
 
         /// <summary>
@@ -252,11 +261,20 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task UnbindUserAuthCallback(CallbackQuery callbackQuery)
         {
-            await bindHandler.UnbindAuthAsync(callbackQuery.Data);
+            try
+            {
+                await bindHandler.UnbindAuthAsync(callbackQuery.Data);
 
-            await botClient.SendTextMessageAsync(
-                chatId: callbackQuery.From.Id,
-                text: $"已成功刪除應用程式授權");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: "已成功刪除應用程式授權");
+            }
+            catch(Exception ex)
+            {
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: ex.Message);
+            }
         }
 
         /// <summary>

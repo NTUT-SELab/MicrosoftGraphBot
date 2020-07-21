@@ -104,7 +104,9 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<string> DeleteAppAsync(string clientId)
         {
-            AzureApp azureApp = await db.AzureApps.Include(app => app.AppAuths).FirstAsync(app => app.Id == Guid.Parse(clientId));
+            AzureApp azureApp = await db.AzureApps.Include(app => app.AppAuths).FirstOrDefaultAsync(app => app.Id == Guid.Parse(clientId));
+            if (azureApp == null)
+                throw new InvalidOperationException("此 Azure 應用程式不存在");
             db.Remove(azureApp);
             await db.SaveChangesAsync();
 
@@ -200,7 +202,14 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             AppAuth appAuth = new AppAuth { Id = Guid.Parse(authId) };
             db.Remove(appAuth);
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch
+            {
+                throw new InvalidOperationException("此 o365 授權不存在");
+            }
         }
 
         /// <summary>
