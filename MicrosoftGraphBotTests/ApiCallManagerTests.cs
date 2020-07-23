@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
+using MicrosoftGraphAPIBot.Telegram;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,12 +20,15 @@ namespace MicrosoftGraphBotTests
 
         public ApiCallManagerTests()
         {
+            TelegramHandler telegramHandler = new Mock<TelegramHandler>(null, null, null, null, null).Object;
+
             services = new ServiceCollection();
             services.AddLogging();
             services.AddScoped<GraphApi, OutlookApi>();
             services.AddScoped<ApiController>();
             services.AddScoped<ApiCallManager>(); 
             services.AddScoped<DefaultGraphApi>();
+            services.AddScoped(services => telegramHandler);
             services.AddScoped(services => Utils.CreateMemoryDbContext());
 
             Dictionary<string, string> config = new Dictionary<string, string>

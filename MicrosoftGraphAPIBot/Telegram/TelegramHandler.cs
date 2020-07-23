@@ -55,6 +55,19 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
+        /// 發送訊息到指定的聊天室或 Telegram 使用者
+        /// </summary>
+        /// <param name="chatId"> Telegram 聊天Id </param>
+        /// <param name="message"> 要發送的訊息 </param>
+        /// <returns></returns>
+        public async Task SendMessage(long chatId, string message)
+        {
+            await botClient.SendTextMessageAsync(
+                chatId: chatId,
+                text: message);
+        }
+
+        /// <summary>
         /// 處理來自 Bot 的訊息
         /// </summary>
         /// <param name="message"> Telegram message object </param>

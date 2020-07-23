@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using MicrosoftGraphAPIBot.Models;
+using MicrosoftGraphAPIBot.Telegram;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +23,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public ApiCallManager(ILogger<ApiCallManager> logger, IServiceProvider serviceProvider, BotDbContext botDbContext, DefaultGraphApi defaultGraphApi) =>
             (this.logger, this.serviceProvider, this.db, this.defaultGraphApi) = (logger, serviceProvider, botDbContext, defaultGraphApi);
 
-
         /// <summary>
         /// 提供排程觸發 Api
         /// </summary>
@@ -34,7 +34,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => Run(userId));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
-            // do something
+            TelegramHandler telegramHandler = serviceProvider.GetService(typeof(TelegramHandler)) as TelegramHandler;
+            IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2));
+            Task task = Task.WhenAll(sendMessagesTask);
+            task.Wait();
         }
 
         /// <summary>
