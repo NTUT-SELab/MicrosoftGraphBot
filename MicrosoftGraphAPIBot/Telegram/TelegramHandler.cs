@@ -19,6 +19,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly ILogger logger;
         private readonly IConfiguration configuration;
         private readonly ITelegramBotClient botClient;
+        private readonly ApiCallManager apiCallManager;
         private readonly BindHandler bindHandler;
         private readonly TelegramCommandGenerator commandGenerator;
         private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)> Controller;
@@ -31,10 +32,12 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="botClient"></param>
         /// <param name="bindHandler"></param>
         /// <param name="commandGenerator"></param>
-        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, BindHandler bindHandler, TelegramCommandGenerator commandGenerator)
+        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, 
+            ApiCallManager apiCallManager, BindHandler bindHandler, TelegramCommandGenerator commandGenerator)
         {
             this.logger = logger;
             this.configuration = configuration;
+            this.apiCallManager = apiCallManager;
             this.botClient = botClient;
             this.bindHandler = bindHandler;
             this.commandGenerator = commandGenerator;
@@ -50,7 +53,8 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.QueryApp, (QueryApp, null, QueryAppCallback) },
                 { TelegramCommand.BindAuth, (BindUserAuth, BindUserAuthReplay, BindUserAuthCallback) },
                 { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, UnbindUserAuthCallback) },
-                { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) }
+                { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) },
+                { TelegramCommand.RunApiTask, (RunApiTask, null, null) }
             };
         }
 
@@ -137,7 +141,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         private async Task Help(Message message)
         {
             List<string> result = new List<string> { "指令選單:", ""};
-            IEnumerable<(string, string)> menu = commandGenerator.GenerateMenuCommands();
+            IEnumerable<(string, string)> menu = await commandGenerator.GenerateMenuCommandsAsync(message.Chat.Id);
             result.AddRange(menu.Select(command => $"{command.Item1, -15} {command.Item2}"));
 
             await botClient.SendTextMessageAsync(
@@ -159,6 +163,20 @@ namespace MicrosoftGraphAPIBot.Telegram
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
                 text: string.Join('\n', result));
+        }
+
+        /// <summary>
+        /// 手動執行任務(一般使用者)
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task RunApiTask(Message message)
+        {
+            var result = await apiCallManager.Run(message.Chat.Id);
+
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: $"執行結果: {result.Item2}");
         }
 
         /// <summary>

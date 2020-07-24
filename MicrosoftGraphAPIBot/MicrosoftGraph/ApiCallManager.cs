@@ -37,7 +37,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             TelegramHandler telegramHandler = serviceProvider.GetService(typeof(TelegramHandler)) as TelegramHandler;
             IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2));
             Task task = Task.WhenAll(sendMessagesTask);
-            task.Wait();
+            await task;
         }
 
         /// <summary>

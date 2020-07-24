@@ -19,6 +19,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string BindAuth = "/bindAuth";
         public const string UnbindAuth = "/unbindAuth";
         public const string QueryAuth = "/queryAuth";
+        public const string RunApiTask = "/RunApi";
     }
 
     /// <summary>
@@ -38,7 +39,8 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.QueryApp, "查詢應用程式" },
             { TelegramCommand.BindAuth, "綁定使用者授權到指定應用程式" },
             { TelegramCommand.UnbindAuth, "解除綁定使用者授權" },
-            { TelegramCommand.QueryAuth, "查詢使用者授權" }
+            { TelegramCommand.QueryAuth, "查詢使用者授權" },
+            { TelegramCommand.RunApiTask, "手動執行 Api 任務" }
         };
 
         /// <summary>
@@ -54,10 +56,13 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// 產生預設選單
         /// </summary>
         /// <returns></returns>
-        public IEnumerable<(string, string)> GenerateMenuCommands()
+        public async Task<IEnumerable<(string, string)>> GenerateMenuCommandsAsync(long userId)
         {
             List<string> commands = new List<string> { TelegramCommand.Help, TelegramCommand.Bind };
-             
+
+            if (await bindHandler.AuthCountAsync(userId) > 0)
+                commands.Add(TelegramCommand.RunApiTask);
+
             return commands.Select(command => (command, instructions[command]));
         }
 

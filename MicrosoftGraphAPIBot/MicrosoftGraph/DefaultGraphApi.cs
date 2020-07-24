@@ -168,7 +168,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="token"> access token </param>
         /// <returns> User object </returns>
-            public static async Task<User> GetUserInfoAsync(string token)
+        public static async Task<User> GetUserInfoAsync(string token)
         {
             try
             {
