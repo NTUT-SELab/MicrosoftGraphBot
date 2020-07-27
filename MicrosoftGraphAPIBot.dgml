@@ -11,7 +11,7 @@
     <Node Id="@14" Category="CodeSchema_Class" Bounds="-210.499366360547,-50.0450262703347,230.54,25" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="TelegramCommandGenerator" UseManualLocation="True" />
     <Node Id="@16" Category="CodeSchema_Class" Bounds="-174.77769969388,-139.58157208223,159.096666666666,25" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="Fetched" DelayedCrossGroupLinksState="Fetched" FetchedChildrenCount="32" Group="Collapsed" Label="TelegramHandler" UseManualLocation="True" />
     <Node Id="@17" Category="CodeSchema_Class" Bounds="152.78973008,126.369199748244,85.9233333333334,25" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsFinal="True" CodeSchemaProperty_IsPublic="True" DelayedChildNodesState="NotFetched" DelayedCrossGroupLinksState="Fetched" Group="Collapsed" Label="Utils" UseManualLocation="True" />
-    <Node Id="@2" Category="CodeSchema_Assembly" Bounds="379.932495724623,69.8207603545975,203.706666666667,25" CodeSchemaProperty_StrongName="MicrosoftGraphAPIBot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" DelayedChildNodesState="Fetched" DelayedCrossGroupLinksState="Fetched" FetchedChildrenCount="7" FilePath="$(43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath)" Group="Collapsed" Label="MicrosoftGraphAPIBot.dll" UseManualLocation="True" />
+    <Node Id="@2" Category="CodeSchema_Assembly" Bounds="0,0,203.706666666667,25" CodeSchemaProperty_StrongName="MicrosoftGraphAPIBot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" DelayedChildNodesState="Fetched" DelayedCrossGroupLinksState="Fetched" FetchedChildrenCount="7" FilePath="$(43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath)" Group="Collapsed" Label="MicrosoftGraphAPIBot.dll" />
     <Node Id="@20" Category="CodeSchema_Method" Bounds="-869.440903612711,-160.520497876883,161.556666666667,25.24" CodeSchemaProperty_IsPrivate="True" DelayedCrossGroupLinksState="Fetched" Label="BindUserAuthCallback" UseManualLocation="True" />
     <Node Id="@21" Category="CodeSchema_Method" Bounds="264.227373488224,-105.280497876883,162.803333333333,25.24" CodeSchemaProperty_IsPublic="True" DelayedCrossGroupLinksState="Fetched" Label="CallbackQueryHandler" UseManualLocation="True" />
     <Node Id="@22" Category="CodeSchema_Method" Bounds="-766.68655984511,-105.280497876883,143.62,25.24" CodeSchemaProperty_IsPrivate="True" DelayedCrossGroupLinksState="Fetched" Label="DeleteAppCallback" UseManualLocation="True" />
@@ -566,7 +566,7 @@
     </Style>
   </Styles>
   <Paths>
-    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath" Value="D:\GitHub\MicrosoftGraphBot\MicrosoftGraphAPIBot\bin\Debug\netcoreapp3.1\MicrosoftGraphAPIBot.dll" />
-    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPathUri" Value="file:///D:/GitHub/MicrosoftGraphBot/MicrosoftGraphAPIBot/bin/Debug/netcoreapp3.1/MicrosoftGraphAPIBot.dll" />
+    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath" Value="E:\GitHub\MicrosoftGraphBot\MicrosoftGraphAPIBot\bin\Debug\netcoreapp3.1\MicrosoftGraphAPIBot.dll" />
+    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPathUri" Value="file:///E:/GitHub/MicrosoftGraphBot/MicrosoftGraphAPIBot/bin/Debug/netcoreapp3.1/MicrosoftGraphAPIBot.dll" />
   </Paths>
 </DirectedGraph>

@@ -34,7 +34,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => Run(userId));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
-            TelegramHandler telegramHandler = serviceProvider.GetService(typeof(TelegramHandler)) as TelegramHandler;
+            TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
             IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2));
             Task task = Task.WhenAll(sendMessagesTask);
             await task;

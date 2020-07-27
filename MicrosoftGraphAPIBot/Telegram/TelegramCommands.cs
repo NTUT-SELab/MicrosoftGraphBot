@@ -19,7 +19,9 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string BindAuth = "/bindAuth";
         public const string UnbindAuth = "/unbindAuth";
         public const string QueryAuth = "/queryAuth";
-        public const string RunApiTask = "/RunApi";
+        public const string RunApiTask = "/runApi";
+        public const string AddAdminPermission = "/addAdminPermission";
+        public const string RemoveAdminPermission = "/removeAdminPermission";
     }
 
     /// <summary>
@@ -28,6 +30,7 @@ namespace MicrosoftGraphAPIBot.Telegram
     public class TelegramCommandGenerator
     {
         private readonly BindHandler bindHandler;
+        private readonly TelegramHandler telegramHandler;
 
         private static readonly Dictionary<string, string> instructions = new Dictionary<string, string>
         {
@@ -40,17 +43,17 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.BindAuth, "綁定使用者授權到指定應用程式" },
             { TelegramCommand.UnbindAuth, "解除綁定使用者授權" },
             { TelegramCommand.QueryAuth, "查詢使用者授權" },
-            { TelegramCommand.RunApiTask, "手動執行 Api 任務" }
+            { TelegramCommand.RunApiTask, "手動執行 Api 任務" },
+            { TelegramCommand.AddAdminPermission, "新增管理員權限" },
+            { TelegramCommand.RemoveAdminPermission, "移除管理員權限" },
         };
 
         /// <summary>
         /// Create a new TelegramCommandGenerator instance.
         /// </summary>
         /// <param name="bindHandler"></param>
-        public TelegramCommandGenerator(BindHandler bindHandler)
-        {
-            this.bindHandler = bindHandler;
-        }
+        public TelegramCommandGenerator(BindHandler bindHandler, TelegramHandler telegramHandler) =>
+            (this.bindHandler, this.telegramHandler) = (bindHandler, telegramHandler);
 
         /// <summary>
         /// 產生預設選單
@@ -62,6 +65,11 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             if (await bindHandler.AuthCountAsync(userId) > 0)
                 commands.Add(TelegramCommand.RunApiTask);
+
+            if (await telegramHandler.CheckIsAdmin(userId))
+                commands.Add(TelegramCommand.RemoveAdminPermission);
+            else
+                commands.Add(TelegramCommand.AddAdminPermission);
 
             return commands.Select(command => (command, instructions[command]));
         }

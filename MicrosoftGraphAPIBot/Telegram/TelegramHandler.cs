@@ -1,194 +1,88 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MicrosoftGraphAPIBot.MicrosoftGraph;
-using System;
-using System.Collections.Generic;
+using MicrosoftGraphAPIBot.Models;
 using System.Linq;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace MicrosoftGraphAPIBot.Telegram
 {
-    /// <summary>
-    /// 處理 Telegram Bot 相關行為
-    /// </summary>
-    public partial class TelegramHandler
+    public class TelegramHandler
     {
         private readonly ILogger logger;
         private readonly IConfiguration configuration;
-        private readonly ITelegramBotClient botClient;
-        private readonly ApiCallManager apiCallManager;
-        private readonly BindHandler bindHandler;
-        private readonly TelegramCommandGenerator commandGenerator;
-        private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)> Controller;
+        private readonly BotDbContext db;
+
+        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, BotDbContext db) =>
+            (this.logger, this.configuration, this.db) = (logger, configuration, db);
 
         /// <summary>
-        /// Create a new TelegramHandler instance.
+        /// 檢查使用者是否有管理者權限
         /// </summary>
-        /// <param name="logger"></param>
-        /// <param name="configuration"></param>
-        /// <param name="botClient"></param>
-        /// <param name="bindHandler"></param>
-        /// <param name="commandGenerator"></param>
-        public TelegramHandler(ILogger<TelegramHandler> logger, IConfiguration configuration, ITelegramBotClient botClient, 
-            ApiCallManager apiCallManager, BindHandler bindHandler, TelegramCommandGenerator commandGenerator)
-        {
-            this.logger = logger;
-            this.configuration = configuration;
-            this.apiCallManager = apiCallManager;
-            this.botClient = botClient;
-            this.bindHandler = bindHandler;
-            this.commandGenerator = commandGenerator;
-
-            // key = 指令, value = (指令對應的方法, 使用者回復指令訊息對應的方法, 使用者回復選擇按鈕對應的方法)
-            Controller = new Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)>
-            {
-                { TelegramCommand.Start, (Start, null, null)},
-                { TelegramCommand.Help, (Help, null, null) },
-                { TelegramCommand.Bind, (Bind, null, null) },
-                { TelegramCommand.RegApp, (RegisterApp, RegisterAppReplay, null) },
-                { TelegramCommand.DeleteApp, (DeleteApp, null, DeleteAppCallback)},
-                { TelegramCommand.QueryApp, (QueryApp, null, QueryAppCallback) },
-                { TelegramCommand.BindAuth, (BindUserAuth, BindUserAuthReplay, BindUserAuthCallback) },
-                { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, UnbindUserAuthCallback) },
-                { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) },
-                { TelegramCommand.RunApiTask, (RunApiTask, null, null) }
-            };
-        }
-
-        /// <summary>
-        /// 發送訊息到指定的聊天室或 Telegram 使用者
-        /// </summary>
-        /// <param name="chatId"> Telegram 聊天Id </param>
-        /// <param name="message"> 要發送的訊息 </param>
+        /// <param name="telegramId"> Telegram user id </param>
         /// <returns></returns>
-        public async Task SendMessage(long chatId, string message)
+        public async Task<bool> CheckIsAdmin(long telegramId)
         {
-            await botClient.SendTextMessageAsync(
-                chatId: chatId,
-                text: message);
+            if (await db.TelegramUsers.AsQueryable().Where(user => user.Id == telegramId && user.IsAdmin).CountAsync() == 1)
+                return true;
+            return false;
         }
 
         /// <summary>
-        /// 處理來自 Bot 的訊息
+        /// 新增管理者權限
         /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        public async Task MessageReceivedHandler(Message message)
+        /// <param name="telegramId"> Telegram user id </param>
+        /// <param name="userName"> Telegram user name </param>
+        /// <param name="password"> 用於驗證管理者身份的密碼 </param>
+        /// <returns></returns>
+        public async Task<bool> AddAdminPermission(long telegramId, string userName, string password)
         {
-            if (message == null || message.Type != MessageType.Text)
-                return;
-
-            logger.LogDebug("User Id: {0}", message.Chat.Id);
-            await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
-
-            if (message.ReplyToMessage != null && message.ReplyToMessage.From.Id == botClient.BotId)
+            if (password == configuration["AdminPassword"])
             {
-                string replyCommand = message.ReplyToMessage.Text.Split('\n').First();
-                await Controller[replyCommand].Item2.Invoke(message);
-                return;
+                TelegramUser telegramUser = await db.TelegramUsers.FindAsync(telegramId);
+                if (telegramUser == null)
+                {
+                    telegramUser = new TelegramUser { Id = telegramId, UserName = userName, IsAdmin = true };
+                    db.TelegramUsers.Add(telegramUser);
+                }
+                else
+                {
+                    telegramUser.UserName = userName;
+                    telegramUser.IsAdmin = true;
+                    db.TelegramUsers.Update(telegramUser);
+                }
+
+                logger.LogInformation($"Telegram user: {telegramId}(@{userName}) 升級管理者權限:成功");
+                await db.SaveChangesAsync();
+                return true;
             }
 
-            string command = message.Text.Split(' ').First();
+            logger.LogWarning($"Telegram user: {telegramId}(@{userName}) 升級管理者權限:失敗-驗證失敗");
+            return false;
+        }
 
-            if (Controller.ContainsKey(command))
+        /// <summary>
+        /// 移除管理者權限
+        /// </summary>
+        /// <param name="telegramId"> Telegram user id </param>
+        /// <param name="userName"> Telegram user name </param>
+        /// <returns></returns>
+        public async Task RemoveAdminPermission(long telegramId, string userName)
+        {
+            TelegramUser telegramUser = await db.TelegramUsers.FindAsync(telegramId);
+            if (telegramUser == null)
             {
-                await Controller[command].Item1.Invoke(message);
-                return;
+                telegramUser = new TelegramUser { Id = telegramId, UserName = userName };
+                db.TelegramUsers.Add(telegramUser);
             }
-                
-            await Defult(message).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// 處理來自 Bot 的訊息
-        /// </summary>
-        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
-        public async Task CallbackQueryHandler(CallbackQuery callbackQuery)
-        {
-            if (callbackQuery == null)
-                return;
-
-            await botClient.SendChatActionAsync(callbackQuery.From.Id, ChatAction.Typing);
-
-            if (callbackQuery.Message != null && callbackQuery.Message.From.Id == botClient.BotId)
+            else
             {
-                string callbackCommand = callbackQuery.Message.Text.Split('\n').First();
-                await Controller[callbackCommand].Item3.Invoke(callbackQuery);
+                telegramUser.UserName = userName;
+                telegramUser.IsAdmin = false;
+                db.TelegramUsers.Update(telegramUser);
             }
-        }
 
-        /// <summary>
-        /// 處理 /start 事件
-        /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        /// <returns></returns>
-        private async Task Start(Message message)
-        {
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: configuration["JoinBotMessage"]);
-
-            await Help(message);
-        }
-
-        /// <summary>
-        /// 處理 /help 事件
-        /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        /// <returns></returns>
-        private async Task Help(Message message)
-        {
-            List<string> result = new List<string> { "指令選單:", ""};
-            IEnumerable<(string, string)> menu = await commandGenerator.GenerateMenuCommandsAsync(message.Chat.Id);
-            result.AddRange(menu.Select(command => $"{command.Item1, -15} {command.Item2}"));
-
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: string.Join('\n', result));
-        }
-
-        /// <summary>
-        /// 處理 /bind 事件
-        /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        /// <returns></returns>
-        private async Task Bind(Message message)
-        {
-            List<string> result = new List<string> { "綁定指令選單:", "" };
-            IEnumerable<(string, string)> menu = await commandGenerator.GenerateBindCommandsAsync(message.Chat.Id);
-            result.AddRange(menu.Select(command => $"{command.Item1,-15} {command.Item2}"));
-
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: string.Join('\n', result));
-        }
-
-        /// <summary>
-        /// 手動執行任務(一般使用者)
-        /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        /// <returns></returns>
-        private async Task RunApiTask(Message message)
-        {
-            var result = await apiCallManager.Run(message.Chat.Id);
-
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: $"執行結果: {result.Item2}");
-        }
-
-        /// <summary>
-        /// 處理預設指令以外的事件
-        /// </summary>
-        /// <param name="message"> Telegram message object </param>
-        /// <returns></returns>
-        private async Task Defult(Message message)
-        {
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: string.Format("Hi @{0} 請使用 /help 獲得完整指令", message.Chat.Username));
+            await db.SaveChangesAsync();
         }
     }
 }

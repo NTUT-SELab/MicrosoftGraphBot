@@ -20,7 +20,7 @@ namespace MicrosoftGraphBotTests
 
         public ApiCallManagerTests()
         {
-            TelegramHandler telegramHandler = new Mock<TelegramHandler>(null, null, null, null, null, null).Object;
+            TelegramController telegramHandler = new Mock<TelegramController>(null, null, null, null, null, null, null).Object;
 
             services = new ServiceCollection();
             services.AddLogging();

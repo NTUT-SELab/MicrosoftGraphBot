@@ -97,7 +97,7 @@ namespace MicrosoftGraphAPIBot.Services
 
             using IServiceScope scope = this.serviceProvider.CreateScope();
             IServiceProvider scopeServiceProvider = scope.ServiceProvider;
-            TelegramHandler telegramHandler = scopeServiceProvider.GetService(typeof(TelegramHandler)) as TelegramHandler;
+            TelegramController telegramHandler = scopeServiceProvider.GetService(typeof(TelegramController)) as TelegramController;
             await telegramHandler.MessageReceivedHandler(message);
         }
 
@@ -114,7 +114,7 @@ namespace MicrosoftGraphAPIBot.Services
 
             using IServiceScope scope = this.serviceProvider.CreateScope();
             IServiceProvider scopeServiceProvider = scope.ServiceProvider;
-            TelegramHandler telegramHandler = scopeServiceProvider.GetService(typeof(TelegramHandler)) as TelegramHandler;
+            TelegramController telegramHandler = scopeServiceProvider.GetService(typeof(TelegramController)) as TelegramController;
             await telegramHandler.CallbackQueryHandler(callbackQuery);
         }
     }

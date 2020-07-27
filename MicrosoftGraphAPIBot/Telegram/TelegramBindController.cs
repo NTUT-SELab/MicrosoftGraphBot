@@ -11,7 +11,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MicrosoftGraphAPIBot.Telegram
 {
-    public partial class TelegramHandler
+    public partial class TelegramController
     {
         /// <summary>
         /// 註冊新的應用程式到 Azure

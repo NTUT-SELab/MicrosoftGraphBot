@@ -43,6 +43,7 @@ namespace MicrosoftGraphAPIBot
                     services.AddTransient<ApiController>();
                     services.AddScoped<ApiCallManager>();
                     services.AddScoped<DefaultGraphApi>();
+                    services.AddScoped<TelegramController>();
                     services.AddScoped<TelegramHandler>();
                     services.AddScoped<TelegramCommandGenerator>();
                     services.AddHostedService<StartupService>();
