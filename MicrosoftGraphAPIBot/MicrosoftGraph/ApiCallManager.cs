@@ -27,11 +27,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// 提供排程觸發 Api
         /// </summary>
         /// <returns></returns>
-        public async Task Run()
+        public async Task RunAsync()
         {
             logger.LogInformation("排程執行呼叫Api開始");
             List<long> usersId = await db.TelegramUsers.AsQueryable().Select(user => user.Id).ToListAsync();
-            IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => Run(userId));
+            IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => RunAsync(userId));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
             TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
@@ -45,7 +45,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
         /// <returns> (Telegram user id, call api result message) </returns>
-        public async Task<(long, string)> Run(long userId)
+        public async Task<(long, string)> RunAsync(long userId)
         {
             try
             {
@@ -55,11 +55,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 db.AppAuths.UpdateRange(appAuths);
                 Task<int> saveChangeTask = db.SaveChangesAsync();
 
-                IEnumerable<Task<string>> callApiTasks = accessTokens.Select(accessToken => CallApi(accessToken.Item1, accessToken.Item2));
+                IEnumerable<Task<string>> callApiTasks = accessTokens.Select(accessToken => CallApiAsync(accessToken.Item1, accessToken.Item2));
                 IEnumerable<string> callApiResults = await Task.WhenAll(callApiTasks);
 
                 await saveChangeTask;
-                logger.LogInformation($"user: {userId}, Api呼叫執行完成");
+                logger.LogInformation($"userId: {userId}, Api呼叫執行完成");
                 return (userId, string.Join('\n', callApiResults));
             }
             catch(InvalidOperationException ex)
@@ -81,7 +81,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// App can use this token to call Microsoft Graph. </param>
         /// <param name="authName"> token 別名 </param>
         /// <returns> call api result message </returns>
-        private async Task<string> CallApi(string token, string authName)
+        private async Task<string> CallApiAsync(string token, string authName)
         {
             try
             {

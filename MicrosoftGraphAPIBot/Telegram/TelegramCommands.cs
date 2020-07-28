@@ -1,5 +1,4 @@
-﻿using MicrosoftGraphAPIBot.MicrosoftGraph;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,6 +12,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string Start = "/start";
         public const string Help = "/help";
         public const string Bind = "/bind";
+        public const string Admin = "/admin";
         public const string RegApp = "/regApp";
         public const string DeleteApp = "/deleteApp";
         public const string QueryApp = "/queryApp";
@@ -20,6 +20,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string UnbindAuth = "/unbindAuth";
         public const string QueryAuth = "/queryAuth";
         public const string RunApiTask = "/runApi";
+        public const string RunAllApiTask = "/runAllApi";
         public const string AddAdminPermission = "/addAdminPermission";
         public const string RemoveAdminPermission = "/removeAdminPermission";
     }
@@ -29,7 +30,6 @@ namespace MicrosoftGraphAPIBot.Telegram
     /// </summary>
     public class TelegramCommandGenerator
     {
-        private readonly BindHandler bindHandler;
         private readonly TelegramHandler telegramHandler;
 
         private static readonly Dictionary<string, string> instructions = new Dictionary<string, string>
@@ -37,6 +37,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.Start, "" },
             { TelegramCommand.Help, "指令選單" },
             { TelegramCommand.Bind, "綁定帳號" },
+            { TelegramCommand.Admin, "管理者選單" },
             { TelegramCommand.RegApp, "註冊應用程式" },
             { TelegramCommand.DeleteApp, "刪除應用程式" },
             { TelegramCommand.QueryApp, "查詢應用程式" },
@@ -44,6 +45,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.UnbindAuth, "解除綁定使用者授權" },
             { TelegramCommand.QueryAuth, "查詢使用者授權" },
             { TelegramCommand.RunApiTask, "手動執行 Api 任務" },
+            { TelegramCommand.RunAllApiTask, "手動執行 Api 任務(所有使用者)"},
             { TelegramCommand.AddAdminPermission, "新增管理員權限" },
             { TelegramCommand.RemoveAdminPermission, "移除管理員權限" },
         };
@@ -51,23 +53,24 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <summary>
         /// Create a new TelegramCommandGenerator instance.
         /// </summary>
-        /// <param name="bindHandler"></param>
-        public TelegramCommandGenerator(BindHandler bindHandler, TelegramHandler telegramHandler) =>
-            (this.bindHandler, this.telegramHandler) = (bindHandler, telegramHandler);
+        /// <param name="telegramHandler"></param>
+        public TelegramCommandGenerator(TelegramHandler telegramHandler) =>
+            (this.telegramHandler) = (telegramHandler);
 
         /// <summary>
         /// 產生預設選單
         /// </summary>
+        /// <param name="userId"></param>
         /// <returns></returns>
         public async Task<IEnumerable<(string, string)>> GenerateMenuCommandsAsync(long userId)
         {
             List<string> commands = new List<string> { TelegramCommand.Help, TelegramCommand.Bind };
 
-            if (await bindHandler.AuthCountAsync(userId) > 0)
+            if (await telegramHandler.AuthCountAsync(userId) > 0)
                 commands.Add(TelegramCommand.RunApiTask);
 
             if (await telegramHandler.CheckIsAdmin(userId))
-                commands.Add(TelegramCommand.RemoveAdminPermission);
+                commands.AddRange(new string[] { TelegramCommand.Admin, TelegramCommand.RemoveAdminPermission });
             else
                 commands.Add(TelegramCommand.AddAdminPermission);
 
@@ -83,14 +86,24 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             List<string> commands = new List<string> { TelegramCommand.RegApp };
 
-            if (await bindHandler.AppCountAsync(userId) > 0)
+            if (await telegramHandler.AppCountAsync(userId) > 0)
             {
                 commands.AddRange(new List<string> { TelegramCommand.DeleteApp, TelegramCommand.QueryApp, TelegramCommand.BindAuth });
 
-                if (await bindHandler.AuthCountAsync(userId) > 0)
+                if (await telegramHandler.AuthCountAsync(userId) > 0)
                     commands.AddRange(new List<string> { TelegramCommand.UnbindAuth, TelegramCommand.QueryAuth });
             }
 
+            return commands.Select(command => (command, instructions[command]));
+        }
+
+        /// <summary>
+        /// 產生管理者選單
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<(string, string)> GenerateAdminCommands()
+        {
+            List<string> commands = new List<string> { TelegramCommand.RunAllApiTask };
             return commands.Select(command => (command, instructions[command]));
         }
     }

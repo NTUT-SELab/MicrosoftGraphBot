@@ -44,12 +44,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             List<(string, string, bool)> results = new List<(string, string, bool)>();
             if (numberOfServiceCall == 0 || graphApis.Length < numberOfServiceCall)
                 foreach (GraphApi api in graphApis)
-                    results.AddRange(await CallApi(api));
+                    results.AddRange(await CallApiAsync(api));
             else
             {
                 Random rnd = new Random(Guid.NewGuid().GetHashCode());
                 foreach (GraphApi api in graphApis.OrderBy(item => rnd.Next()).Take(numberOfServiceCall))
-                    results.AddRange(await CallApi(api));
+                    results.AddRange(await CallApiAsync(api));
             }
 
             return results;
@@ -60,7 +60,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="api"> Microsoft Graph 服務 </param>
         /// <returns> call api result message </returns>
-        private async Task<IEnumerable<(string, string, bool)>> CallApi(GraphApi api)
+        private async Task<IEnumerable<(string, string, bool)>> CallApiAsync(GraphApi api)
         {
             IReadOnlyList<(string, bool)> results = await api.RunAsync(graphClient).ToListAsync();
             foreach (var result in results)
@@ -107,16 +107,16 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
             if (numberOfMethodCall == 0 || methodInfos.Count() < numberOfMethodCall)
                 foreach (MethodInfo method in methodInfos)
-                    yield return await CallApi(method);
+                    yield return await CallApiAsync(method);
             else
             {
                 Random rnd = new Random(Guid.NewGuid().GetHashCode());
                 foreach (MethodInfo method in methodInfos.OrderBy(item => rnd.Next()).Take(numberOfMethodCall))
-                    yield return await CallApi(method);
+                    yield return await CallApiAsync(method);
             }
         }
 
-        private async Task<(string, bool)> CallApi(MethodInfo method)
+        private async Task<(string, bool)> CallApiAsync(MethodInfo method)
         {
             Task<bool> result = (Task<bool>)method.Invoke(this, null);
             return (method.Name, await result);

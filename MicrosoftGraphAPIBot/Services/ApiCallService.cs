@@ -64,7 +64,7 @@ namespace MicrosoftGraphAPIBot.Services
                     DisableGlobalLocks = true
                 });
 
-            RecurringJob.AddOrUpdate(() => apiCallManager.Run(), configuration["Cron"]);
+            RecurringJob.AddOrUpdate(() => apiCallManager.RunAsync(), configuration["Cron"]);
 
             backgroundJobServer = new BackgroundJobServer();
         }

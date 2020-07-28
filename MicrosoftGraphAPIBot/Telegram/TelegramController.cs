@@ -52,6 +52,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.Start, (Start, null, null)},
                 { TelegramCommand.Help, (Help, null, null) },
                 { TelegramCommand.Bind, (Bind, null, null) },
+                { TelegramCommand.Admin, (Admin, null, null) },
                 { TelegramCommand.RegApp, (RegisterApp, RegisterAppReplay, null) },
                 { TelegramCommand.DeleteApp, (DeleteApp, null, DeleteAppCallback)},
                 { TelegramCommand.QueryApp, (QueryApp, null, QueryAppCallback) },
@@ -59,6 +60,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, UnbindUserAuthCallback) },
                 { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) },
                 { TelegramCommand.RunApiTask, (RunApiTask, null, null) },
+                { TelegramCommand.RunAllApiTask, (RunAllApiTask, null, null) },
                 { TelegramCommand.AddAdminPermission, (AddAdminPermission, AddAdminPermissionReplay, null) },
                 { TelegramCommand.RemoveAdminPermission, (RemoveAdminPermission, null, null) }
             };
@@ -172,13 +174,29 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
+        /// 處理 /admin 事件
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task Admin(Message message)
+        {
+            List<string> result = new List<string> { "管理者指令選單:", "" };
+            IEnumerable<(string, string)> menu = commandGenerator.GenerateAdminCommands();
+            result.AddRange(menu.Select(command => $"{command.Item1,-15} {command.Item2}"));
+
+            await botClient.SendTextMessageAsync(
+                chatId: message.Chat.Id,
+                text: string.Join('\n', result));
+        }
+
+        /// <summary>
         /// 手動執行任務(一般使用者)
         /// </summary>
         /// <param name="message"> Telegram message object </param>
         /// <returns></returns>
         private async Task RunApiTask(Message message)
         {
-            var result = await apiCallManager.Run(message.Chat.Id);
+            var result = await apiCallManager.RunAsync(message.Chat.Id);
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
