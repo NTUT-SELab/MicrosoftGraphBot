@@ -11,7 +11,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MicrosoftGraphAPIBot.Telegram
 {
-    public partial class TelegramHandler
+    public partial class TelegramController
     {
         /// <summary>
         /// 註冊新的應用程式到 Azure
@@ -141,7 +141,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task QueryAppCallback(CallbackQuery callbackQuery)
         {
-            AzureApp app = await bindHandler.GetAppInfoAsync(callbackQuery.Data);
+            AzureApp app = await telegramHandler.GetAppInfoAsync(callbackQuery.Data);
             string[] infos = new string[] { 
                 $"應用程式 (用戶端) 識別碼: {app.Id}",
                 $"應用程式別名: {app.Name}",
@@ -306,7 +306,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task QueryUserAuthCallback(CallbackQuery callbackQuery)
         {
-            AppAuth auth = await bindHandler.GetAuthInfoAsync(callbackQuery.Data);
+            AppAuth auth = await telegramHandler.GetAuthInfoAsync(callbackQuery.Data);
             string[] infos = new string[] {
                 $"授權識別碼: {auth.Id}",
                 $"授權別名: {auth.Name}",
@@ -350,7 +350,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task<InlineKeyboardMarkup> GetUserAppsNameAsync(long userId)
         {
-            IEnumerable<(Guid, string)> appsInfo = await bindHandler.GetAppsNameAsync(userId);
+            IEnumerable<(Guid, string)> appsInfo = await telegramHandler.GetAppsNameAsync(userId);
 
             IEnumerable<InlineKeyboardButton> keyboardButtons = appsInfo.Select(appInfo => InlineKeyboardButton.WithCallbackData(appInfo.Item2.ToString(), appInfo.Item1.ToString()));
             return new InlineKeyboardMarkup(keyboardButtons);
@@ -363,7 +363,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task<InlineKeyboardMarkup> GetUserAuthsNameAsync(long userId)
         {
-            IEnumerable<(Guid, string)> authsInfo = await bindHandler.GetAuthsNameAsync(userId);
+            IEnumerable<(Guid, string)> authsInfo = await telegramHandler.GetAuthsNameAsync(userId);
 
             IEnumerable<InlineKeyboardButton> keyboardButtons = authsInfo.Select(authInfo => InlineKeyboardButton.WithCallbackData(authInfo.Item2.ToString(), authInfo.Item1.ToString()));
             return new InlineKeyboardMarkup(keyboardButtons);

@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using MicrosoftGraphAPIBot.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using Newtonsoft.Json.Linq;
@@ -105,45 +104,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             return string.Format(DeleteUrl, clientId);
         }
 
-        /// <summary>
-        /// 取得指定 Telegram 使用者註冊的應用程式數量
-        /// </summary>
-        /// <param name="userId"> Telegram user id </param>
-        /// <returns> 應用程式數量 </returns>
-        public async Task<int> AppCountAsync(long userId)
-        {
-            return await db.AzureApps.AsQueryable()
-                .Where(app => app.TelegramUserId == userId)
-                .CountAsync();
-        }
-
-        /// <summary>
-        /// 取得指定 Telegram 使用者註冊的應用程式別名
-        /// </summary>
-        /// <param name="userId"> Telegram user id </param>
-        /// <returns> 應用程式別名 </returns>
-        public async Task<IEnumerable<(Guid, string)>> GetAppsNameAsync(long userId)
-        {
-            var appInfos = await db.AzureApps.AsQueryable()
-                .Where(app => app.TelegramUser.Id == userId)
-                .Select(app => new { app.Id, app.Name })
-                .ToListAsync();
-            return appInfos.Select(app => (app.Id, app.Name));
-        }
-
-        /// <summary>
-        /// 取得指定的應用程式資訊
-        /// </summary>
-        /// <param name="clientId"> Application (client) ID </param>
-        /// <returns> 應用程式資訊 </returns>
-        public async Task<AzureApp> GetAppInfoAsync(string clientId)
-        {
-            Guid id = Guid.Parse(clientId);
-            var appInfo = await db.AzureApps.FindAsync(id);
-
-            return appInfo;
-        }
-
         #endregion
 
         #region App auth
@@ -202,45 +162,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 throw new InvalidOperationException("此 o365 授權不存在");
             }
-        }
-
-        /// <summary>
-        /// 取得指定 Telegram 使用者綁定的授權數量
-        /// </summary>
-        /// <param name="userId"> Telegram user id </param>
-        /// <returns> 授權數量 </returns>
-        public async Task<int> AuthCountAsync(long userId)
-        {
-            return await db.AppAuths.AsQueryable()
-                .Where(auth => auth.AzureApp.TelegramUserId == userId)
-                .CountAsync();
-        }
-
-        /// <summary>
-        /// 取得指定 Telegram 使用者註冊的授權別名
-        /// </summary>
-        /// <param name="userId"> Telegram user id </param>
-        /// <returns> 授權別名 </returns>
-        public async Task<IEnumerable<(Guid, string)>> GetAuthsNameAsync(long userId)
-        {
-            var appInfos = await db.AppAuths.AsQueryable()
-                .Where(auth => auth.AzureApp.TelegramUserId == userId)
-                .Select(auth => new { auth.Id, auth.Name })
-                .ToListAsync();
-            return appInfos.Select(auth => (auth.Id, auth.Name));
-        }
-
-        /// <summary>
-        /// 取得指定的授權資訊
-        /// </summary>
-        /// <param name="AppId"> 授權 id </param>
-        /// <returns> 授權資訊 </returns>
-        public async Task<AppAuth> GetAuthInfoAsync(string authId)
-        {
-            Guid id = Guid.Parse(authId);
-            var appInfo = await db.AppAuths.FindAsync(id);
-
-            return appInfo;
         }
 
         #endregion

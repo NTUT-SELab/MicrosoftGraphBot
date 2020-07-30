@@ -89,6 +89,7 @@ namespace MicrosoftGraphBotTests
             db.AppAuths.Add(new AppAuth { Name = "Auth3", RefreshToken = string.Empty, Scope = DefaultGraphApi.Scope, AzureAppId = clientId3 });
 
             await db.SaveChangesAsync();
+            await db.DisposeAsync();
         }
 
         public static async Task DeleteDBAsync()

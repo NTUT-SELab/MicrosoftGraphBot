@@ -20,7 +20,7 @@ namespace MicrosoftGraphBotTests
 
         public ApiCallManagerTests()
         {
-            TelegramHandler telegramHandler = new Mock<TelegramHandler>(null, null, null, null, null, null).Object;
+            TelegramController telegramHandler = new Mock<TelegramController>(null, null, null, null, null, null, null).Object;
 
             services = new ServiceCollection();
             services.AddLogging();
@@ -59,7 +59,7 @@ namespace MicrosoftGraphBotTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             ApiCallManager apiCallManager = serviceProvider.GetRequiredService<ApiCallManager>();
-            (long, string) result = await apiCallManager.Run(123456789);
+            (long, string) result = await apiCallManager.RunAsync(123456789);
             string[] message = result.Item2.Split('\n');
 
             Assert.AreEqual(2, message.Length);
@@ -77,7 +77,7 @@ namespace MicrosoftGraphBotTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             ApiCallManager apiCallManager = serviceProvider.GetRequiredService<ApiCallManager>();
-            (long, string) result = await apiCallManager.Run(123456789);
+            (long, string) result = await apiCallManager.RunAsync(123456789);
             string[] message = result.Item2.Split('\n');
 
             Assert.AreEqual(1, message.Length);

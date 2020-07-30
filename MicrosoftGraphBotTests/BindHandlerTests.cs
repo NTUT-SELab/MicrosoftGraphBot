@@ -161,57 +161,6 @@ namespace MicrosoftGraphBotTests
         }
 
         [TestMethod]
-        public async Task TestAppCountAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            Assert.AreEqual(2, await bindHandler.AppCountAsync(123456789));
-        }
-
-        [TestMethod]
-        public async Task TestAuthCountAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            Assert.AreEqual(1, await bindHandler.AuthCountAsync(123456789));
-        }
-
-        [TestMethod]
-        public async Task TestGetAppsNameAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            var appsInfo = (await bindHandler.GetAppsNameAsync(123456789)).ToList();
-            Assert.AreEqual(appsInfo.Count(), 2);
-            Assert.AreEqual(appsInfo[0].Item2, "App1");
-            Assert.AreEqual(appsInfo[1].Item2, "App2");
-        }
-
-        [TestMethod]
-        public async Task TestGetAppInfoAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-            Guid clientId1 = await db.AzureApps.AsQueryable().Select(app => app.Id).FirstAsync();
-            await db.DisposeAsync();
-            db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            var appInfo = (await bindHandler.GetAppInfoAsync(clientId1.ToString()));
-            Assert.AreEqual(appInfo.Name, "App1");
-            Assert.AreEqual(appInfo.Email, "test@onmicrosoft.com");
-            Assert.AreEqual(appInfo.Secrets, string.Empty);
-            Assert.AreEqual(appInfo.TelegramUserId, 123456789);
-            Assert.AreEqual(appInfo.Id, clientId1);
-        }
-
-        [TestMethod]
         public async Task TestBindAuthAsync()
         {
             string token = await Utils.GetTestToken();
@@ -292,35 +241,6 @@ namespace MicrosoftGraphBotTests
 
             BindHandler bindHandler = new BindHandler(db, null);
             await bindHandler.UnbindAuthAsync(authId1.ToString());
-        }
-
-        [TestMethod]
-        public async Task TestGetAuthsNameAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            var authsInfo = (await bindHandler.GetAuthsNameAsync(123456789)).ToList();
-            Assert.AreEqual(authsInfo.Count(), 1);
-            Assert.AreEqual(authsInfo[0].Item2, "Auth1");
-        }
-
-        [TestMethod]
-        public async Task TestGetAuthInfoAsync()
-        {
-            await Utils.SetDefaultValueDbContextAsync();
-            BotDbContext db = Utils.CreateMemoryDbContext();
-            Guid authId1 = await db.AppAuths.AsQueryable().Select(app => app.Id).FirstAsync();
-            await db.DisposeAsync();
-            db = Utils.CreateMemoryDbContext();
-
-            BindHandler bindHandler = new BindHandler(db, null);
-            var authInfo = (await bindHandler.GetAuthInfoAsync(authId1.ToString()));
-            Assert.AreEqual(authInfo.Name, "Auth1");
-            Assert.AreEqual(authInfo.RefreshToken, string.Empty);
-            Assert.AreEqual(authInfo.Scope, DefaultGraphApi.Scope);
-            Assert.AreEqual(authInfo.Id, authId1);
         }
 
         [TestCleanup]
