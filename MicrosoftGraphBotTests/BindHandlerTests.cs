@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MicrosoftGraphAPIBot;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using Newtonsoft.Json;
@@ -33,6 +34,19 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(message, results.Item2);
         }
 
+        [ExpectedException(typeof(BotException))]
+        [TestMethod]
+        public async Task TestGetAuthUrlAsyncEmailNotExist()
+        {
+            Guid clientId = Guid.NewGuid();
+            var mocks = Utils.CreateDefaultGraphApiMock(string.Empty);
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+
+            BindHandler bindHandler = new BindHandler(db, defaultGraphApi);
+            (string, string) _ = await bindHandler.GetAuthUrlAsync(clientId.ToString());
+        }
+
         [TestMethod]
         public async Task TestRegAppAsync()
         {
@@ -63,7 +77,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(appName, azureApp.Name);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestRegInvalidAppAsync()
         {
@@ -85,7 +99,7 @@ namespace MicrosoftGraphBotTests
             await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret, appName);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestRegAppInvalidEmailAsync()
         {
@@ -107,7 +121,7 @@ namespace MicrosoftGraphBotTests
             await bindHandler.RegAppAsync(userId, userName, email, clientId.ToString(), clientSecret, appName);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestRegAppInvalidClientIdAsync()
         {
@@ -146,7 +160,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestDeleteNotExistAppAsync()
         {
@@ -186,7 +200,7 @@ namespace MicrosoftGraphBotTests
             Assert.IsTrue(await db.AppAuths.AsQueryable().AnyAsync(appAuth => appAuth.Name == name));
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestBindAuthInvalidAuthAsync()
         {
@@ -197,7 +211,7 @@ namespace MicrosoftGraphBotTests
             await bindHandler.BindAuthAsync(Guid.Empty.ToString(), authResponse, string.Empty);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestBindAuthInvalidJsonAsync()
         {
@@ -206,7 +220,7 @@ namespace MicrosoftGraphBotTests
             await bindHandler.BindAuthAsync(Guid.Empty.ToString(), authResponse, string.Empty);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestBindAuthErrorFormatAsync()
         {
@@ -229,7 +243,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(await db.AppAuths.AsQueryable().CountAsync(), 1);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestUnbindNotExistAuthAsync()
         {

@@ -1,4 +1,4 @@
-﻿using MicrosoftGraphAPIBot.MicrosoftGraph;
+﻿using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.Models;
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: $"註冊應用程式: [Get an app ID and secret]({BindHandler.AppRegistrationUrl})",
+                text: "根據後方教學取得 Client ID 和 App secret" + '\n' +
+                    "[Azure 應用程式註冊教學](https://github.com/NTUT-SELab/MicrosoftGraphBot/blob/master/Docs/AppRegistrations.md)",
                 ParseMode.MarkdownV2);
 
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
@@ -48,7 +49,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             {
                 string[] userMessages = message.Text.Split(' ');
                 if (userMessages.Length != 4)
-                    throw new InvalidOperationException("輸入格式錯誤");
+                    throw new BotException("輸入格式錯誤");
                 await bindHandler.RegAppAsync(message.Chat.Id, message.Chat.Username, userMessages[0], userMessages[1], userMessages[2], userMessages[3]);
 
                 await botClient.SendTextMessageAsync(
@@ -57,13 +58,22 @@ namespace MicrosoftGraphAPIBot.Telegram
 
                 await BindUserAuth(message);
             }
-            catch(Exception ex)
+            catch(BotException ex)
             {
+                logger.LogWarning($"User Id: {message.Chat.Id}-處理使用者回傳的 Azure App 訊息失敗");
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: ex.Message);
 
                 await Bind(message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
             }
         }
 
@@ -104,11 +114,20 @@ namespace MicrosoftGraphAPIBot.Telegram
                     text: $"本地應用程式關聯已刪除，請點擊後方連結至 Azure 刪除應用程式: [Azure 應用程式連結]({deleteUrl})",
                     ParseMode.MarkdownV2);
             }
-            catch (Exception ex)
+            catch (BotException ex)
             {
+                logger.LogWarning($"User Id: {callbackQuery.From.Id}-刪除應用程式失敗");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
             }
         }
 
@@ -141,14 +160,21 @@ namespace MicrosoftGraphAPIBot.Telegram
         private async Task QueryAppCallback(CallbackQuery callbackQuery)
         {
             AzureApp app = await telegramHandler.GetAppInfoAsync(callbackQuery.Data);
-            string[] infos = new string[] { 
-                $"應用程式 (用戶端) 識別碼: {app.Id}",
-                $"應用程式別名: {app.Name}",
-                $"Client secrets: {app.Secrets}",
-                $"註冊應用程式使用的信箱: {app.Email}",
-                $"註冊應用程式時間: {app.RegTime}"
-            };
-            string text = string.Join('\n', infos);
+
+            string text = "查無此應用程式";
+
+            if (app != null)
+            {
+                string[] infos = new string[] {
+                    $"應用程式 (用戶端) 識別碼: {app.Id}",
+                    $"應用程式別名: {app.Name}",
+                    $"Client secrets: {app.Secrets}",
+                    $"註冊應用程式使用的信箱: {app.Email}",
+                    $"註冊應用程式時間: {app.RegTime}"
+                };
+
+                text = string.Join('\n', infos);
+            }
 
             await botClient.SendTextMessageAsync(
                 chatId: callbackQuery.From.Id,
@@ -183,23 +209,41 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task BindUserAuthCallback(CallbackQuery callbackQuery)
         {
-            (string, string) auth = await bindHandler.GetAuthUrlAsync(callbackQuery.Data);
+            try
+            {
+                (string, string) auth = await bindHandler.GetAuthUrlAsync(callbackQuery.Data);
 
-            await botClient.SendTextMessageAsync(
-                chatId: callbackQuery.From.Id,
-                text: $"授權帳號: [授權連結]({auth.Item2})",
-                ParseMode.MarkdownV2);
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"授權帳號: [授權連結]({auth.Item2})",
+                    ParseMode.MarkdownV2);
 
-            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
+                string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
 
-            await botClient.SendTextMessageAsync(
-                chatId: callbackQuery.From.Id,
-                text: command + "\n" +
-                    $"應用程式Id: {auth.Item1}" + "\n" +
-                    "[網頁內容] [授權別名 (用於管理)]" + "\n" +
-                    @"範例: {""code"":""asf754...""} Auth1" + "\n" +
-                    "備註: 每個項目請用空格分開",
-                replyMarkup: new ForceReplyMarkup());
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: command + "\n" +
+                        $"應用程式Id: {auth.Item1}" + "\n" +
+                        "[網頁內容] [授權別名 (用於管理)]" + "\n" +
+                        @"範例: {""code"":""asf754...""} Auth1" + "\n" +
+                        "備註: 每個項目請用空格分開",
+                    replyMarkup: new ForceReplyMarkup());
+            }
+            catch(BotException ex)
+            {
+                logger.LogWarning($"User Id: {callbackQuery.From.Id}-產生授權連結失敗");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: ex.Message);
+            }
+            catch(Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
         }
 
         /// <summary>
@@ -215,7 +259,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             {
                 string[] userMessages = message.Text.Split(' ');
                 if (userMessages.Length != 2)
-                    throw new InvalidOperationException("輸入格式錯誤");
+                    throw new BotException("輸入格式錯誤");
 
                 string clientIdItem = message.ReplyToMessage.Text.Split('\n')[1];
                 string clientId = clientIdItem.Split(' ')[1];
@@ -225,11 +269,22 @@ namespace MicrosoftGraphAPIBot.Telegram
                     chatId: message.Chat.Id,
                     text: "授權綁定成功");
             }
-            catch(Exception ex)
+            catch(BotException ex)
             {
+                logger.LogWarning($"User Id: {message.Chat.Id}-綁定授權程序失敗");
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: ex.Message);
+
+                await Bind(message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
             }
         }
 
@@ -269,11 +324,20 @@ namespace MicrosoftGraphAPIBot.Telegram
                     chatId: callbackQuery.From.Id,
                     text: "已成功刪除應用程式授權");
             }
-            catch(Exception ex)
+            catch(BotException ex)
             {
+                logger.LogWarning($"User Id: {callbackQuery.From.Id}-執行刪除動作失敗");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
             }
         }
 
@@ -306,15 +370,22 @@ namespace MicrosoftGraphAPIBot.Telegram
         private async Task QueryUserAuthCallback(CallbackQuery callbackQuery)
         {
             AppAuth auth = await telegramHandler.GetAuthInfoAsync(callbackQuery.Data);
-            string[] infos = new string[] {
-                $"授權識別碼: {auth.Id}",
-                $"授權別名: {auth.Name}",
-                $"Refresh token: {auth.RefreshToken}",
-                $"Scope: {auth.Scope}",
-                $"綁定時間: {auth.BindTime}",
-                $"Token 更新的時間: {auth.UpdateTime}"
-            };
-            string text = string.Join('\n', infos);
+
+            string text = "查無此授權";
+
+            if (auth != null)
+            {
+                string[] infos = new string[] {
+                    $"授權識別碼: {auth.Id}",
+                    $"授權別名: {auth.Name}",
+                    $"Refresh token: {auth.RefreshToken}",
+                    $"Scope: {auth.Scope}",
+                    $"綁定時間: {auth.BindTime}",
+                    $"Token 更新的時間: {auth.UpdateTime}"
+                };
+
+                text = string.Join('\n', infos);
+            }
 
             await botClient.SendTextMessageAsync(
                 chatId: callbackQuery.From.Id,

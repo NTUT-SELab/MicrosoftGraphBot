@@ -62,7 +62,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 logger.LogInformation($"userId: {userId}, Api呼叫執行完成");
                 return (userId, string.Join('\n', callApiResults));
             }
-            catch(InvalidOperationException ex)
+            catch(BotException ex)
             {
                 logger.LogError($"userId: {userId}, ErrorMessage: {ex.Message}");
                 return (userId, ex.Message);

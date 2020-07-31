@@ -62,7 +62,7 @@ namespace MicrosoftGraphBotTests
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
             TelegramCommandGenerator telegramCommand = new TelegramCommandGenerator(telegramHandler);
 
-            await telegramHandler.AddAdminPermission(123456789, "Bot1", "P@ssw0rd");
+            await telegramHandler.AddAdminPermissionAsync(123456789, "Bot1", "P@ssw0rd");
             var result = await telegramCommand.GenerateMenuCommandsAsync(123456789);
             Assert.AreEqual(1, result.Where(items => items.Item1 == TelegramCommand.RemoveAdminPermission).Count());
         }

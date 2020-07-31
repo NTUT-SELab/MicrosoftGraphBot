@@ -43,9 +43,16 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns> (clientId, o365 授權網址) </returns>
         public async Task<(string, string)> GetAuthUrlAsync(string clientId)
         {
-            string email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
-            string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(AppUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
-            return (clientId, url);
+            try
+            {
+                string email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
+                string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(AppUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
+                return (clientId, url);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == "Sequence contains no elements")
+            {
+                throw new BotException("無效的應用程式");
+            }
         }
 
         #region Azure app
@@ -62,11 +69,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public async Task RegAppAsync(long userId, string userName, string email, string clientId, string clientSecret, string appName)
         {
             if (!IsValidEmail(email))
-                throw new InvalidOperationException("信箱格式錯誤");
+                throw new BotException("信箱格式錯誤");
             if (!Guid.TryParse(clientId, out Guid appId))
-                throw new InvalidOperationException("應用程式 Client Id 格式錯誤");
+                throw new BotException("應用程式 Client Id 格式錯誤");
             if (!await defaultGraphApi.IsValidApplicationAsync(email, clientId, clientSecret))
-                throw new InvalidOperationException("無效的 Azure 應用程式");
+                throw new BotException("無效的 Azure 應用程式");
 
             // 寫入資料庫
             var telegramUser = db.TelegramUsers.Find(userId);
@@ -105,7 +112,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             AzureApp azureApp = await db.AzureApps.Include(app => app.AppAuths).FirstOrDefaultAsync(app => app.Id == Guid.Parse(clientId));
             if (azureApp == null)
-                throw new InvalidOperationException("此 Azure 應用程式不存在");
+                throw new BotException("此 Azure 應用程式不存在");
             db.Remove(azureApp);
             await db.SaveChangesAsync();
 
@@ -133,12 +140,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
             catch
             {
-                throw new InvalidOperationException("網頁內容格式錯誤");
+                throw new BotException("網頁內容格式錯誤");
             }
             if (jObject.Property("code") == null && jObject.Property("error") != null)
-                throw new InvalidOperationException(jObject["error"].ToString());
+                throw new BotException(jObject["error"].ToString());
             if (jObject.Property("code") == null && jObject.Property("error") == null)
-                throw new InvalidOperationException("網頁內容缺少必要訊息");
+                throw new BotException("網頁內容缺少必要訊息");
             Guid appId = Guid.Parse(clientId);
             (string, string) tokens = await defaultGraphApi.GetTokenAsync(appId, jObject["code"].ToString());
             await DefaultGraphApi.GetUserInfoAsync(tokens.Item1);
@@ -168,7 +175,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
             catch
             {
-                throw new InvalidOperationException("此 o365 授權不存在");
+                throw new BotException("此 o365 授權不存在");
             }
         }
 

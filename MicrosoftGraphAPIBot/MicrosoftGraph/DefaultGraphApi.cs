@@ -98,6 +98,9 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             logger.LogInformation($"Get Token: clientId: {clientId}, code: {code}");
             AzureApp azureApp = await db.AzureApps.FindAsync(clientId);
 
+            if (azureApp == null)
+                throw new BotException("Azure 應用程式不存在");
+
             Dictionary<string, string> body = new Dictionary<string, string>()
             {
                 { "client_id", clientId.ToString() },
@@ -123,7 +126,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
 
             logger.LogError(json);
-            throw new InvalidOperationException("獲取 Token 失敗");
+            throw new BotException("獲取 Token 失敗");
         }
 
         /// <summary>
@@ -160,7 +163,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
 
             logger.LogError(json);
-            throw new InvalidOperationException($"授權名稱: {appAuth.Name}, Reflash Token 失敗");
+            throw new BotException($"授權名稱: {appAuth.Name}, Reflash Token 失敗");
         }
 
         /// <summary>
@@ -178,7 +181,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             }
             catch
             {
-                throw new InvalidOperationException("獲取 User Info 失敗");
+                throw new BotException("獲取 User Info 失敗");
             }
         }
 
@@ -196,7 +199,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             if (user.DisplayName != null && user.Mail != null)
                 return user;
 
-            throw new InvalidOperationException("獲取 User Info 失敗");
+            throw new BotException("獲取 User Info 失敗");
         }
 
         /// <summary>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MicrosoftGraphAPIBot;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using Newtonsoft.Json.Linq;
@@ -59,7 +60,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(jObject["refresh_token"].ToString(), tokens.Item2);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestGetTokenFailedAsync()
         {
@@ -68,6 +69,20 @@ namespace MicrosoftGraphBotTests
             Guid clientId = Guid.NewGuid();
             var mocks = Utils.CreateDefaultGraphApiMock(json);
             await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
+
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+            (string, string) _ = await defaultGraphApi.GetTokenAsync(clientId, string.Empty);
+        }
+
+        [ExpectedException(typeof(BotException))]
+        [TestMethod]
+        public async Task TestGetTokenAzureAppNotFoundAsync()
+        {
+            string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenSuccessResult.json");
+            string json = File.ReadAllText(testResultPath);
+            Guid clientId = Guid.NewGuid();
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
@@ -94,7 +109,7 @@ namespace MicrosoftGraphBotTests
             Assert.AreEqual(jObject["refresh_token"].ToString(), appAuth.RefreshToken);
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TestReflashTokenFailedAsync()
         {
@@ -117,7 +132,7 @@ namespace MicrosoftGraphBotTests
             Assert.IsNotNull(await DefaultGraphApi.GetUserInfoAsync(token));
         }
 
-        [ExpectedException(typeof(InvalidOperationException))]
+        [ExpectedException(typeof(BotException))]
         [TestMethod]
         public async Task TeskGetUserInfoFailedAsync()
         {

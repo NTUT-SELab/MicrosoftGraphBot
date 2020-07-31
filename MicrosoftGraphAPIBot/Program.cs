@@ -6,6 +6,7 @@ using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using MicrosoftGraphAPIBot.Services;
 using MicrosoftGraphAPIBot.Telegram;
+using System;
 using Telegram.Bot;
 
 namespace MicrosoftGraphAPIBot
@@ -14,10 +15,17 @@ namespace MicrosoftGraphAPIBot
     {
         static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureLogging(logging =>
                 {
@@ -31,6 +39,8 @@ namespace MicrosoftGraphAPIBot
                 })
                 .ConfigureServices((hostContext, services) =>
                 {
+                    if (!Utils.CheckConfig(hostContext.Configuration))
+                        throw new BotException("Configuration file check failed.");
                     string DBConnection = Utils.GetDBConnection(hostContext.Configuration);
                     services.AddDbContext<BotDbContext>(options =>
                     {

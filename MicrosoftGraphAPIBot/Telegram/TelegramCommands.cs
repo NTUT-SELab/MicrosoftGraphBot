@@ -50,6 +50,8 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.RemoveAdminPermission, "移除管理員權限" },
         };
 
+        public static readonly string[] AdminCommands = new string[] { TelegramCommand.RunAllApiTask };
+
         /// <summary>
         /// Create a new TelegramCommandGenerator instance.
         /// </summary>
@@ -69,7 +71,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             if (await telegramHandler.AuthCountAsync(userId) > 0)
                 commands.Add(TelegramCommand.RunApiTask);
 
-            if (await telegramHandler.CheckIsAdmin(userId))
+            if (await telegramHandler.CheckIsAdminAsync(userId))
                 commands.AddRange(new string[] { TelegramCommand.Admin, TelegramCommand.RemoveAdminPermission });
             else
                 commands.Add(TelegramCommand.AddAdminPermission);

@@ -23,7 +23,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// </summary>
         /// <param name="telegramId"> Telegram user id </param>
         /// <returns></returns>
-        public async Task<bool> CheckIsAdmin(long telegramId)
+        public async Task<bool> CheckIsAdminAsync(long telegramId)
         {
             if (await db.TelegramUsers.AsQueryable().Where(user => user.Id == telegramId && user.IsAdmin).CountAsync() == 1)
                 return true;
@@ -37,7 +37,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="userName"> Telegram user name </param>
         /// <param name="password"> 用於驗證管理者身份的密碼 </param>
         /// <returns></returns>
-        public async Task<bool> AddAdminPermission(long telegramId, string userName, string password)
+        public async Task<bool> AddAdminPermissionAsync(long telegramId, string userName, string password)
         {
             if (password == configuration["AdminPassword"])
             {
@@ -69,7 +69,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="telegramId"> Telegram user id </param>
         /// <param name="userName"> Telegram user name </param>
         /// <returns></returns>
-        public async Task RemoveAdminPermission(long telegramId, string userName)
+        public async Task RemoveAdminPermissionAsync(long telegramId, string userName)
         {
             TelegramUser telegramUser = await db.TelegramUsers.FindAsync(telegramId);
             if (telegramUser == null)

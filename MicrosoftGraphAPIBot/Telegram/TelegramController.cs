@@ -100,6 +100,12 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             string command = message.Text.Split(' ').First();
 
+            if (TelegramCommandGenerator.AdminCommands.Contains(command) && !(await telegramHandler.CheckIsAdminAsync(message.Chat.Id)))
+            {
+                await Defult(message).ConfigureAwait(false);
+                return;
+            }
+
             if (Controller.ContainsKey(command))
             {
                 await Controller[command].Item1.Invoke(message);
@@ -123,6 +129,8 @@ namespace MicrosoftGraphAPIBot.Telegram
             if (callbackQuery.Message != null && callbackQuery.Message.From.Id == botClient.BotId)
             {
                 string callbackCommand = callbackQuery.Message.Text.Split('\n').First();
+                if (TelegramCommandGenerator.AdminCommands.Contains(callbackCommand) && !(await telegramHandler.CheckIsAdminAsync(callbackQuery.From.Id)))
+                    return;
                 await Controller[callbackCommand].Item3.Invoke(callbackQuery);
             }
         }
@@ -229,7 +237,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task AddAdminPermissionReplay(Message message)
         {
-            bool result = await telegramHandler.AddAdminPermission(message.Chat.Id, message.Chat.Username, message.Text);
+            bool result = await telegramHandler.AddAdminPermissionAsync(message.Chat.Id, message.Chat.Username, message.Text);
 
             string resultMessage = "升級管理者權限: 失敗";
 
@@ -248,7 +256,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task RemoveAdminPermission(Message message)
         {
-            await telegramHandler.RemoveAdminPermission(message.Chat.Id, message.Chat.Username);
+            await telegramHandler.RemoveAdminPermissionAsync(message.Chat.Id, message.Chat.Username);
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,

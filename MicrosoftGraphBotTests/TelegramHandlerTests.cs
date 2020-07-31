@@ -40,7 +40,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.AddAdminPermission(123456789, "Bot1", "P@ssw0rd");
+            bool result = await telegramHandler.AddAdminPermissionAsync(123456789, "Bot1", "P@ssw0rd");
 
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
@@ -57,7 +57,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.AddAdminPermission(123456789, "Bot1", "P@ssw0rd");
+            bool result = await telegramHandler.AddAdminPermissionAsync(123456789, "Bot1", "P@ssw0rd");
 
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
@@ -75,7 +75,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.AddAdminPermission(123456789, "Bot1", "@@@@@@@");
+            bool result = await telegramHandler.AddAdminPermissionAsync(123456789, "Bot1", "@@@@@@@");
 
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
@@ -91,7 +91,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            await telegramHandler.RemoveAdminPermission(123456789, "Bot1");
+            await telegramHandler.RemoveAdminPermissionAsync(123456789, "Bot1");
 
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
@@ -107,7 +107,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            await telegramHandler.RemoveAdminPermission(123456789, "Bot1");
+            await telegramHandler.RemoveAdminPermissionAsync(123456789, "Bot1");
 
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
@@ -125,11 +125,11 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            await telegramHandler.AddAdminPermission(123456789, "Bot1", "P@ssw0rd");
+            await telegramHandler.AddAdminPermissionAsync(123456789, "Bot1", "P@ssw0rd");
             await db.DisposeAsync();
             db = Utils.CreateMemoryDbContext();
             telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.CheckIsAdmin(123456789);
+            bool result = await telegramHandler.CheckIsAdminAsync(123456789);
 
             Assert.IsTrue(result);
         }
@@ -141,7 +141,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.CheckIsAdmin(123456789);
+            bool result = await telegramHandler.CheckIsAdminAsync(123456789);
 
             Assert.IsFalse(result);
         }
@@ -152,7 +152,7 @@ namespace MicrosoftGraphBotTests
             BotDbContext db = Utils.CreateMemoryDbContext();
 
             TelegramHandler telegramHandler = new TelegramHandler(logger, configuration, db);
-            bool result = await telegramHandler.CheckIsAdmin(123456789);
+            bool result = await telegramHandler.CheckIsAdminAsync(123456789);
 
             Assert.IsFalse(result);
         }
