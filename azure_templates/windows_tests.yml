@@ -6,7 +6,7 @@ steps:
   inputs:
     command: test
     projects: '**/*Tests/*.csproj'
-    arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:ExcludeByFile="**/Migrations/*.cs%2c**/*DbContext.cs%2c**/*Service.cs%2c**/Program.cs%2c**/Startup.cs" /p:CoverletOutputFormat=opencover /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
+    arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:ExcludeByFile="**/Migrations/*.cs%2c**/*DbContext.cs%2c**/*Service.cs%2c**/Program.cs%2c**/Startup.cs%2c**/**Controller.cs" /p:CoverletOutputFormat=opencover /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
     publishTestResults: true
 
 - script: |

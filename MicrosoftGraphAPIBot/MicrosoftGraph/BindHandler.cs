@@ -15,18 +15,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     /// </summary>
     public class BindHandler
     {
-        private static readonly string appName = Guid.NewGuid().ToString();
         public const string AppUrl = "https://msgraphauthorization.azurewebsites.net/authcode/";
         public const string DeleteUrl = "https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/{0}/isMSAApp/";
         private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
-
-        public static string AppRegistrationUrl { 
-            get {
-                string ru = $"https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={AppUrl}&platform=option-windowsuniversal";
-                string deeplink = $"/quickstart/graphIO?publicClientSupport=false&appName={appName}&redirectUrl={AppUrl}&allowImplicitFlow=true&ru=" + HttpUtility.UrlEncode(ru);
-                return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
-            } }
 
         /// <summary>
         /// Create a new BindHandler instance.
