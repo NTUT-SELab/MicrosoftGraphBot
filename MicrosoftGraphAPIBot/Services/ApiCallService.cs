@@ -1,5 +1,6 @@
 ﻿using Hangfire;
 using Hangfire.SqlServer;
+using Hangfire.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -64,6 +65,9 @@ namespace MicrosoftGraphAPIBot.Services
                     DisableGlobalLocks = true
                 });
 
+            using (var connection = JobStorage.Current.GetConnection())
+                foreach (var recurringJob in connection.GetRecurringJobs())
+                    RecurringJob.RemoveIfExists(recurringJob.Id);
             RecurringJob.AddOrUpdate(() => apiCallManager.RunAsync(), configuration["Cron"]);
 
             backgroundJobServer = new BackgroundJobServer();

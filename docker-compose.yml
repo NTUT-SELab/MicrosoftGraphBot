@@ -1,0 +1,21 @@
+version: "3"
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:latest
+    user: root
+    volumes:
+      - ./mssql/data:/var/opt/mssql/data
+      - ./mssql/log:/var/opt/mssql/log
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: P@ssw0rd
+    restart: always
+    container_name: mssql
+
+  microsoft-graph-bot:
+    image: ntutselab/microsoft-graph-bot:latest
+    volumes:
+      - ./bot/appsettings.json:/app/appsettings.json
+      - ./bot/Logs:/app/Logs
+    restart: always
+    container_name: MGBot
