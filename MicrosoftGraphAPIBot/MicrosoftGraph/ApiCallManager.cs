@@ -29,15 +29,18 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task RunAsync()
         {
-            logger.LogInformation("排程執行呼叫Api開始");
+            logger.LogInformation("開始執行 Api 任務(所有使用者)");
             List<long> usersId = await db.TelegramUsers.AsQueryable().Select(user => user.Id).ToListAsync();
             IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => RunAsync(userId));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
             TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
-            IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2));
-            Task task = Task.WhenAll(sendMessagesTask);
-            await task;
+            if (callApiResults.Count() != 0)
+            {
+                IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2 != string.Empty ? items.Item2 : "沒有任何可執行物件"));
+                Task task = Task.WhenAll(sendMessagesTask);
+                await task;
+            }
         }
 
         /// <summary>

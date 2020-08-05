@@ -2,6 +2,7 @@
 using Hangfire.SqlServer;
 using Hangfire.Storage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
@@ -16,12 +17,13 @@ namespace MicrosoftGraphAPIBot.Services
         private readonly IHost host;
         private readonly ILogger logger;
         private readonly IConfiguration configuration;
-        private readonly ApiCallManager apiCallManager;
+        private readonly IServiceProvider serviceProvider;
+        private readonly HangfireJob hangfireJob;
         private BackgroundJobServer backgroundJobServer;
         private bool isStart = false;
 
-        public ApiCallService(IHost host, ILogger<ApiCallService> logger, IConfiguration configuration, ApiCallManager apiCallManager) =>
-            (this.host, this.logger, this.configuration, this.apiCallManager) = (host, logger, configuration, apiCallManager);
+        public ApiCallService(IHost host, ILogger<ApiCallService> logger, IConfiguration configuration, IServiceProvider serviceProvider, HangfireJob hangfireJob) =>
+            (this.host, this.logger, this.configuration, this.serviceProvider, this.hangfireJob) = (host, logger, configuration, serviceProvider, hangfireJob);
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -55,6 +57,7 @@ namespace MicrosoftGraphAPIBot.Services
                 .UseColouredConsoleLogProvider()
                 .UseSimpleAssemblyNameTypeSerializer()
                 .UseRecommendedSerializerSettings()
+                .UseActivator(new HangfireActivator(serviceProvider))
                 .UseSqlServerStorage(DBConnection, new SqlServerStorageOptions
                 {
                     CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
@@ -68,7 +71,7 @@ namespace MicrosoftGraphAPIBot.Services
             using (var connection = JobStorage.Current.GetConnection())
                 foreach (var recurringJob in connection.GetRecurringJobs())
                     RecurringJob.RemoveIfExists(recurringJob.Id);
-            RecurringJob.AddOrUpdate(() => apiCallManager.RunAsync(), configuration["Cron"]);
+            RecurringJob.AddOrUpdate(() => hangfireJob.CallApiJob(), configuration["Cron"]);
 
             backgroundJobServer = new BackgroundJobServer();
         }
@@ -76,6 +79,35 @@ namespace MicrosoftGraphAPIBot.Services
         private void StopReceiving()
         {
             backgroundJobServer.Dispose();
+        }
+    }
+
+    public class HangfireActivator : JobActivator
+    {
+        private readonly IServiceProvider serviceProvider;
+
+        public HangfireActivator(IServiceProvider serviceProvider) =>
+            this.serviceProvider = serviceProvider;
+
+        public override object ActivateJob(Type jobType)
+        {
+            return serviceProvider.GetService(jobType);
+        }
+    }
+
+    public class HangfireJob
+    {
+        private readonly IServiceProvider serviceProvider;
+
+        public HangfireJob(IServiceProvider serviceProvider) =>
+            this.serviceProvider = serviceProvider;
+
+        public async Task CallApiJob()
+        {
+            using IServiceScope scope = this.serviceProvider.CreateScope();
+            IServiceProvider scopeServiceProvider = scope.ServiceProvider;
+            ApiCallManager apiCallManager = scopeServiceProvider.GetService(typeof(ApiCallManager)) as ApiCallManager;
+            await apiCallManager.RunAsync();
         }
     }
 }

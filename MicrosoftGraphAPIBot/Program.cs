@@ -51,8 +51,9 @@ namespace MicrosoftGraphAPIBot
                     services.AddScoped<BindHandler>();
                     services.AddScoped<GraphApi, OutlookApi>();
                     services.AddTransient<ApiController>();
-                    services.AddScoped<ApiCallManager>();
+                    services.AddTransient<ApiCallManager>();
                     services.AddScoped<DefaultGraphApi>();
+                    services.AddScoped<HangfireJob>();
                     services.AddScoped<TelegramController>();
                     services.AddScoped<TelegramHandler>();
                     services.AddScoped<TelegramCommandGenerator>();
