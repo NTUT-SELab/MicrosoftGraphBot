@@ -1,0 +1,32 @@
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: 'restore'
+    projects: ./MicrosoftGraphAPIBot/MicrosoftGraphAPIBot.csproj
+
+- task: DotNetCoreCLI@2
+  inputs:
+    projects: ./MicrosoftGraphAPIBot/MicrosoftGraphAPIBot.csproj
+    command: publish
+    publishWebProjects: false
+    zipAfterPublish: false
+    arguments: '--configuration $(BuildConfiguration) --output ./release -r ${{ parameters.Platform }} --self-contained true'
+
+- task: ArchiveFiles@2
+  inputs: 
+    rootFolderOrFile: './release/MicrosoftGraphAPIBot'
+    archiveType: ${{ parameters.ArchiveType }}
+    tarCompression: 'gz'
+    archiveFile: ./${{ parameters.Platform }}.${{ parameters.FilenameExtension }}
+
+- task: GithubRelease@0 
+  displayName: 'Publish ${{ parameters.Platform }} to GitHub Release'      
+  inputs:
+    gitHubConnection: GithubRelease
+    repositoryName: NTUT-SELab/MicrosoftGraphBot
+    action: 'edit'
+    tag: $(version)
+    addChangeLog: false
+    assets: ./${{ parameters.Platform }}.${{ parameters.FilenameExtension }}
+    assetUploadMode: replace

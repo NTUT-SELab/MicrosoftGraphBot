@@ -42,3 +42,71 @@ stages:
       inputs:
         branch: 'master'
         intelliCodeServiceEndpoint: 'IntelliCode'
+
+- stage: Github_Release
+  displayName: 'Publish the current version to Github'
+  dependsOn:
+    - Build_and_Test
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/release'))
+  jobs:
+  - job: Create
+    displayName: 'Create GitHub Release'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - template: azure_templates/release_templates/create_github_release.yml
+
+  - job: linux_x64
+    displayName: 'Publish linux-x64 to GitHub Release'
+    dependsOn:
+      - Create
+    condition: succeeded()
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - template: azure_templates/release_templates/publish_github_release.yml
+        parameters:
+          Platform: linux-x64
+          ArchiveType: tar
+          FilenameExtension: tar.gz
+
+  - job: win_x64
+    displayName: 'Publish win-x64 to GitHub Release'
+    dependsOn:
+      - Create
+    condition: succeeded()
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+      - template: azure_templates/release_templates/publish_github_release.yml
+        parameters:
+          Platform: win-x64
+          ArchiveType: zip
+          FilenameExtension: zip
+
+  - job: osx_x64
+    displayName: 'Publish osx-x64 to GitHub Release'
+    dependsOn:
+      - Create
+    condition: succeeded()
+    pool:
+      vmImage: 'macOS-latest'
+    steps:
+      - template: azure_templates/release_templates/publish_github_release.yml
+        parameters:
+          Platform: osx-x64
+          ArchiveType: zip
+          FilenameExtension: zip
+
+- stage: Docker
+  displayName: 'Publish the current version to Dockerhub'
+  dependsOn:
+    - Github_Release
+  condition: succeeded()
+  jobs:
+  - job: build_push
+    displayName: 'Build and push docker image'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - template: azure_templates/release_templates/docker.yml

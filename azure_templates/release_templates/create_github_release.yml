@@ -1,0 +1,19 @@
+steps:
+- script: sh ./Scripts/AzurePipelines/PackageDockerReleaseFile.sh
+  displayName: 'Package the docker release file.'
+- script: mv ./appsettings.json.example ./appsettings.json
+  displayName: 'Rename appsettings.json'
+- task: GithubRelease@0 
+  displayName: 'Create GitHub Release'      
+  inputs:
+    gitHubConnection: GithubRelease
+    repositoryName: NTUT-SELab/MicrosoftGraphBot
+    action: 'create'
+    tagSource: 'manual'
+    tag: $(version)
+    addChangeLog: false
+    releaseNotesSource: 'file'
+    releaseNotesFile: './ReleaseNotes/$(version).md'
+    assets: |
+      ./appsettings.json
+      ./docker.tar.gz
