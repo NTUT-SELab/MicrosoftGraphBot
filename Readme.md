@@ -4,19 +4,63 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 
 本專案基於教育與開發目的建立自動化呼叫 Microsoft Graph API 機器人伺服器，該機器人會根據組態檔的設定排成呼叫 Microsoft Graph API。
 
-應用: Microsoft365 😘
+應用: Office365 開發者 😘
 
 ||Ubuntu|Windows|MacOS|
 |----|----|----|----|
-|master|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=master)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=master)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=master)|
-|develop|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=develop)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=develop)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=develop)|
-|hotfix|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=hotfix)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=hotfix)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=hotfix)|
-|document|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=document)|
-|release|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=release)|
+|master|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|
+|develop|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=develop&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|
+|hotfix|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=hotfix&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|
+|document|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|
+|release|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
 
 ||Master|develop|hotfix|document|release|
 |----|----|----|----|----|----|
-|Code coverage|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/8/master)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=master)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/8/develop)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=develop)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/8/hotfix)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=hotfix)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/8/document)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=document)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/8/release)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=8&branchName=release)
+|Coverage|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/master)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/develop)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/hotfix)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/document)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/release)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)
+
+||Github|Docker|
+|----|----|----|
+|Publish|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&stagename=Publish%20the%20current%20version%20to%20Github)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&stagename=Publish%20the%20current%20version%20to%20Dockerhub)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
+
+## 組態檔介紹:
+
+範例文件: [appsettings.json.example](appsettings.json.example)
+```
+{
+  "JoinBotMessage": "歡迎使用 Microsoft Graph Bot",
+  "Cron": "0 */4 * * *",
+  "AdminPassword": "P@ssw0rd",
+  "Telegram": {
+    "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"
+  },
+  "MSSQL": {
+    "Host": "mssql",
+    "Port": 1433,
+    "User": "sa",
+    "Password": "P@ssw0rd",
+    "DataBase": "MicrosoftGraphBot"
+  },
+  "API": {
+    "NumberOfServiceCall": 0,
+    "NumberOfMethodCall": 0
+  }
+}
+```
+
+||配置項|說明|
+|----|----|----|
+||JoinBotMessage|使用者第一次與 Bot 建立聯繫時，Bot的問候語|
+||Cron|Api 排程觸發的頻率，請參考 Crontab 格式|
+||AdminPassword|管理者密碼，與 Bot 溝通後，輸入此密碼可取得管理者權限|
+|Telegram|Token|Telegram bot token，請與 [Telegram bot father](https://core.telegram.org/bots) 聊天建立 Telegram bot 並取得 Token|
+|MSSQL|Host|SQL server 主機位置 (備註:使用 Docker compose 在 MSSQL 項不需要做任何更改)|
+||Port|SQL server port|
+||User|SQL server 使用者|
+||Password|SQL server 使用者的密碼|
+||DataBase|資料庫名稱|
+|API|NumberOfServiceCall|每次呼叫 API 時，呼叫 API 種類數量的上限 例如: Outlook API|
+||NumberOfMethodCall|每個 API 種類，呼叫 API 數量的上限 例如: List messages|
+
 
 ## 架設方法:
 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 appsettings.json(應用程式配置文件)
@@ -28,21 +72,29 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Windows
     1. 開啟 Powershell，並切換至 **docker.tar.gz** 解壓縮後的目錄
     1. 第一次執行需要建立必要資料夾
-        `PS C:\docker> .\CreateContainerFolder.ps1`
+        ```
+        PS C:\docker> .\CreateContainerFolder.ps1
+        ```
     1. 將 appsettings.json 移動至 docker 資料夾下的 bot 資料夾內
     1. 編輯 appsettings.json 文件的內容
     1. 建立並啟動容器
-        `PS C:\docker> docker-compose up -d`
+        ```
+        PS C:\docker> docker-compose up -d
+        ```
         
 
 - Linux & MacOS
     1. 切換至 **docker.tar.gz** 解壓縮後的目錄
     1. 第一次執行需要建立必要資料夾
-        `root@docker_server:~/docker$ .\CreateContainerFolder.sh`
+        ```
+        root@docker_server:~/docker$ .\CreateContainerFolder.sh
+        ```
     1. 將 appsettings.json 移動至 docker 資料夾下的 bot 資料夾內
     1. 編輯 appsettings.json 文件的內容
     1. 建立並啟動容器
-        `root@docker_server:~/docker$ docker-compose up -d`
+        ```
+        root@docker_server:~/docker$ docker-compose up -d
+        ```
 
 ### Windows(x64):
 待編輯
@@ -52,6 +104,28 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 
 ### MacOS(x64):
 待編輯
+
+## 支援 API:
+**未來還會持續更新新的Api**
+
+### [Outlook API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/3):
+- List messages
+- Create Message
+- Get message
+- Update message
+- Delete message
+- message: send
+
+## 貢獻:
+我們將貢獻分為3類:
+1. 提出功能需求，但無撰寫程式能力
+    - 開啟新的 issue，並使用 **功能要求** 模板
+
+1. 提出錯誤報告，但無撰寫程式能力
+    - 開啟新的 issue，並使用 **錯誤報告** 模板
+
+1. 有撰寫程式能力者
+    - 請參考 [Contributing.md](./Docs/Contributing.md)
 
 ## 技術:
 - C#
