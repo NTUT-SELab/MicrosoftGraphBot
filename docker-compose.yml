@@ -19,3 +19,5 @@ services:
       - ./bot/Logs:/app/Logs
     restart: always
     container_name: MGBot
+    depends_on:
+      - mssql

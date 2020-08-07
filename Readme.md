@@ -20,7 +20,11 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 
 ||Github|Docker|
 |----|----|----|
-|Publish|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&stagename=Publish%20the%20current%20version%20to%20Github)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=master&stagename=Publish%20the%20current%20version%20to%20Dockerhub)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
+|Publish|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&stagename=Publish%20the%20current%20version%20to%20Github)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&stagename=Publish%20the%20current%20version%20to%20Dockerhub)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
+
+## 教學:
+  - [綁定 Office 365 授權教學](./Docs/Bind.md)
+  - [Azure 應用程式註冊教學](./Docs/AppRegistrations.md)
 
 ## 組態檔介紹:
 
@@ -58,16 +62,15 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 ||User|SQL server 使用者|
 ||Password|SQL server 使用者的密碼|
 ||DataBase|資料庫名稱|
-|API|NumberOfServiceCall|每次呼叫 API 時，呼叫 API 種類數量的上限 例如: Outlook API|
-||NumberOfMethodCall|每個 API 種類，呼叫 API 數量的上限 例如: List messages|
-
+|API|NumberOfServiceCall|每次呼叫 API 時，呼叫 API 種類數量的上限 例如: Outlook API (備註: 0 為所有 API 種類)|
+||NumberOfMethodCall|某個 API 種類，呼叫 API 數量的上限 例如: List messages (備註: 0 為某個 API 種類中，所有的 API)|
 
 ## 架設方法:
-至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 appsettings.json(應用程式配置文件)
+至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 appsettings.json(應用程式配置文件)，編輯其內容。 備註: [Telegram:Token] 請改成自己 **Bot** 的 Token。
 
 ### Docker(推薦):
 1. 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 **docker.tar.gz**，並解壓縮文件
-2. 安裝 [Docker](https://docs.docker.com/engine/install/#supported-platforms)
+1. 安裝 [Docker](https://docs.docker.com/engine/install/#supported-platforms)
 
 - Windows
     1. 開啟 Powershell，並切換至 **docker.tar.gz** 解壓縮後的目錄
@@ -80,14 +83,13 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
     1. 建立並啟動容器
         ```
         PS C:\docker> docker-compose up -d
-        ```
-        
+        ```    
 
 - Linux & MacOS
     1. 切換至 **docker.tar.gz** 解壓縮後的目錄
     1. 第一次執行需要建立必要資料夾
         ```
-        root@docker_server:~/docker$ .\CreateContainerFolder.sh
+        root@docker_server:~/docker$ ./CreateContainerFolder.sh
         ```
     1. 將 appsettings.json 移動至 docker 資料夾下的 bot 資料夾內
     1. 編輯 appsettings.json 文件的內容
@@ -96,14 +98,27 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
         root@docker_server:~/docker$ docker-compose up -d
         ```
 
-### Windows(x64):
-待編輯
+### 其它
+1. 自行安裝 [SQL server](https://www.microsoft.com/zh-tw/sql-server/sql-server-downloads)
+1. 編輯 **appsettings.json** 內 MSSQL 配置項的配置
 
-### Linux(x64):
-待編輯
+- Windows(x64):
+  1. 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 **win-x64.zip**，並解壓縮文件
+  1. 執行 **MicrosoftGraphAPIBot.exe**
 
-### MacOS(x64):
-待編輯
+- Linux(x64):
+  1. 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 **linux-x64.zip**，並解壓縮文件
+  1. 執行 **MicrosoftGraphAPIBot**
+      ```
+      root@server:~/MicrosoftGraphAPIBot$ ./MicrosoftGraphAPIBot
+      ```
+
+- MacOS(x64):
+  1. 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新的 **osx-x64.zip**，並解壓縮文件
+  1. 執行 **MicrosoftGraphAPIBot**
+      ```
+      root@server:~/MicrosoftGraphAPIBot$ ./MicrosoftGraphAPIBot
+      ```
 
 ## 支援 API:
 **未來還會持續更新新的Api**
@@ -115,6 +130,10 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Update message
 - Delete message
 - message: send
+
+## 版本:
+請至 [ReleaseNotes](./ReleaseNotes) 資料夾查看變更紀錄。
+
 
 ## 貢獻:
 我們將貢獻分為3類:

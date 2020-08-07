@@ -38,9 +38,32 @@
     dotnet restore
     ```
 
+1. 將 [appsettings.json.example](../appsettings.json.example) 複製到 **MicrosoftGraphAPIBot** 資料夾中，並將 **appsettings.json.example** 重新命名成 **appsettings.json**
+
+1. 編輯 **appsettings.json** 內的 `Telegram:Token`，替換成自己 Bot 的 Token。
+
 1. 如果使用 **Visual studio 2019** 或更新版本可以使用 [Visual Studio IntelliCode](https://visualstudio.microsoft.com/services/intellicode/) 提高開發效率。
     - 配置內容如下: 工具->選項-> **IntelliCode**
     ![IntelliCode](../Imgs/IntelliCode.png)
+
+1. 執行程式需要依賴 Microsoft SQL server，這邊提供兩種方法
+    - Docker(推薦):
+        - Windows:
+            1. 用**管理者權限**開啟 Powershell
+            1. 執行 Scripts -> StartSqlServer -> StartSqlServer.ps1
+                ```
+                PS C:\MicrosoftGraphBot> .\Scripts\StartSqlServer\StartSqlServer.ps1
+                ```
+
+        - Linux & MacOS
+            1. 執行 Scripts -> StartSqlServer -> StartSqlServer.sh
+                ```
+                root@docker_server:~/MicrosoftGraphBot$ sudo ./Scripts/StartSqlServer/StartSqlServer.sh
+                ```
+
+    - 自行安裝 [SQL server](https://www.microsoft.com/zh-tw/sql-server/sql-server-downloads)
+        - 安裝 [SQL server](https://www.microsoft.com/zh-tw/sql-server/sql-server-downloads)
+        - 編輯 **appsettings.json** 內 MSSQL 配置項的配置
 
 ## 測試
 任何修改除了文檔都必須在 MicrosoftGraphBotTests 增加測試，以確保一切正常。
