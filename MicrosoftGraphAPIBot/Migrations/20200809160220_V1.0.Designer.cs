@@ -10,14 +10,14 @@ using MicrosoftGraphAPIBot.Models;
 namespace MicrosoftGraphAPIBot.Migrations
 {
     [DbContext(typeof(BotDbContext))]
-    [Migration("20200713191700_V1")]
-    partial class V1
+    [Migration("20200809160220_V1.0")]
+    partial class V10
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.5")
+                .HasAnnotation("ProductVersion", "3.1.6")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -97,7 +97,6 @@ namespace MicrosoftGraphAPIBot.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserName")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

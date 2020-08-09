@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using MicrosoftGraphAPIBot.MicrosoftGraph;
 using MicrosoftGraphAPIBot.Models;
 using System;
 using System.Collections.Generic;
@@ -22,8 +23,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: "根據後方教學取得 Client ID 和 App secret" + '\n' +
-                    "[Azure 應用程式註冊教學](https://github.com/NTUT-SELab/MicrosoftGraphBot/blob/master/Docs/AppRegistrations.md)",
+                text: $"註冊應用程式: [Get an app ID and secret]({BindHandler.AppRegistrationUrl})",
                 ParseMode.MarkdownV2);
 
             await botClient.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);

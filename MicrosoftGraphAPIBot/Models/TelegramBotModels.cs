@@ -14,7 +14,6 @@ namespace MicrosoftGraphAPIBot.Models
         [Key]
         [Required]
         public long Id { get; set; }
-        [Required]
         public string UserName { get; set; }
         [Required]
         public bool IsAdmin { get; set; }

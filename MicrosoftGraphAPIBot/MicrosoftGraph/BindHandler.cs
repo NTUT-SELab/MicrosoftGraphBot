@@ -20,6 +20,17 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
 
+        public static string AppRegistrationUrl
+        {
+            get
+            {
+                Guid appName = Guid.NewGuid();
+                string ru = $"https://developer.microsoft.com/en-us/graph/quick-start?appID=_appId_&appName=_appName_&redirectUrl={AppUrl}&platform=option-windowsuniversal";
+                string deeplink = $"/quickstart/graphIO?publicClientSupport=false&appName={appName}&redirectUrl={AppUrl}&allowImplicitFlow=true&ru=" + HttpUtility.UrlEncode(ru);
+                return "https://apps.dev.microsoft.com/?deepLink=" + HttpUtility.UrlEncode(deeplink);
+            }
+        }
+
         /// <summary>
         /// Create a new BindHandler instance.
         /// </summary>

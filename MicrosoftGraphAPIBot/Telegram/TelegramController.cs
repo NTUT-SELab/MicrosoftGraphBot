@@ -158,7 +158,8 @@ namespace MicrosoftGraphAPIBot.Telegram
         {
             List<string> result = new List<string> { "指令選單:", ""};
             IEnumerable<(string, string)> menu = await commandGenerator.GenerateMenuCommandsAsync(message.Chat.Id);
-            result.AddRange(menu.Select(command => $"{command.Item1, -15} {command.Item2}"));
+            result.AddRange(menu.Select(command => $"{command.Item1}  {command.Item2}"));
+            result.AddRange(new string[] { string.Empty, string.Empty, "專案位置: https://github.com/NTUT-SELab/MicrosoftGraphBot"});
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
@@ -172,13 +173,14 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task Bind(Message message)
         {
-            List<string> result = new List<string> { "綁定指令選單:", "" };
+            List<string> result = new List<string> { "綁定指令選單:", "[綁定 Office 365 授權教學](https://github.com/NTUT-SELab/MicrosoftGraphBot/blob/master/Docs/Bind.md)", "" };
             IEnumerable<(string, string)> menu = await commandGenerator.GenerateBindCommandsAsync(message.Chat.Id);
-            result.AddRange(menu.Select(command => $"{command.Item1,-15} {command.Item2}"));
+            result.AddRange(menu.Select(command => $"{command.Item1}  {command.Item2}"));
 
             await botClient.SendTextMessageAsync(
                 chatId: message.Chat.Id,
-                text: string.Join('\n', result));
+                text: string.Join('\n', result),
+                ParseMode.MarkdownV2);
         }
 
         /// <summary>

@@ -566,7 +566,7 @@
     </Style>
   </Styles>
   <Paths>
-    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath" Value="C:\Users\Kenneth\source\repos\NTUT-SELab\MicrosoftGraphBot\MicrosoftGraphAPIBot\bin\Debug\netcoreapp3.1\MicrosoftGraphAPIBot.dll" />
-    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPathUri" Value="file:///C:/Users/Kenneth/source/repos/NTUT-SELab/MicrosoftGraphBot/MicrosoftGraphAPIBot/bin/Debug/netcoreapp3.1/MicrosoftGraphAPIBot.dll" />
+    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPath" Value="E:\GitHub\MicrosoftGraphBot\MicrosoftGraphAPIBot\bin\Debug\netcoreapp3.1\MicrosoftGraphAPIBot.dll" />
+    <Path Id="43cb5125-a68a-4dc6-9688-6d32ed673034.OutputPathUri" Value="file:///E:/GitHub/MicrosoftGraphBot/MicrosoftGraphAPIBot/bin/Debug/netcoreapp3.1/MicrosoftGraphAPIBot.dll" />
   </Paths>
 </DirectedGraph>

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MicrosoftGraphAPIBot.Migrations
 {
-    public partial class V1 : Migration
+    public partial class V10 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -13,7 +13,7 @@ namespace MicrosoftGraphAPIBot.Migrations
                 {
                     Id = table.Column<long>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserName = table.Column<string>(nullable: false),
+                    UserName = table.Column<string>(nullable: true),
                     IsAdmin = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
