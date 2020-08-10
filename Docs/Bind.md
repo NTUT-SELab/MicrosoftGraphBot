@@ -9,9 +9,9 @@ Bot 需要取得你的 **Office 365 Token** 才能為你服務，要取得你的
 
     ![002](../Imgs/Bind/002.png)
 
-1. 點擊 **/regApp** 指令，Bot輔助你如何註冊 Azure 應用程式。首先點擊如下圖第二個紅框的 [Azure 應用程式註冊教學](./AppRegistrations.md)，按照教學手動建立 Azure 應用程式，接下來將教學要求紀錄的訊息依照第三個紅框的格式回覆給 **Bot**。
+1. 點擊 **/regApp** 指令，Bot輔助你如何註冊 Azure 應用程式。首先點擊如下圖第二個紅框的 **Get an app ID and secret**，會開啟微軟的**Application Registration Portal**網頁，並要求你登入 **Office 365 帳號**，之後將網頁的**應用程式秘密** (Client secrets)及**App ID** (or Client ID)記錄下來，然後將前面要求紀錄的訊息依照第三個紅框的格式回覆給 **Bot**。
 
-    ![003](../Imgs/Bind/003.png)
+    ![003-1](../Imgs/Bind/003-1.png)
 
 1. 回覆後，**Bot** 會去驗證你剛註冊的應用程式是否成功，成功的話 **Bot** 會回覆 **應用程式註冊成功** 的訊息，接下來提示你選擇一個應用程式用來授權。
 
