@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using MicrosoftGraphAPIBot.Models;
@@ -17,11 +18,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         private readonly ILogger logger;
         private readonly IServiceProvider serviceProvider;
-        private readonly BotDbContext db;
         private readonly DefaultGraphApi defaultGraphApi;
 
-        public ApiCallManager(ILogger<ApiCallManager> logger, IServiceProvider serviceProvider, BotDbContext botDbContext, DefaultGraphApi defaultGraphApi) =>
-            (this.logger, this.serviceProvider, this.db, this.defaultGraphApi) = (logger, serviceProvider, botDbContext, defaultGraphApi);
+        public ApiCallManager(ILogger<ApiCallManager> logger, IServiceProvider serviceProvider, DefaultGraphApi defaultGraphApi) =>
+            (this.logger, this.serviceProvider, this.defaultGraphApi) = (logger, serviceProvider, defaultGraphApi);
 
         /// <summary>
         /// 提供排程觸發 Api
@@ -30,14 +30,15 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         public async Task RunAsync()
         {
             logger.LogInformation("開始執行 Api 任務(所有使用者)");
+            BotDbContext db = serviceProvider.GetService(typeof(BotDbContext)) as BotDbContext;
             List<long> usersId = await db.TelegramUsers.AsQueryable().Select(user => user.Id).ToListAsync();
-            IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => RunAsync(userId));
+            IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => RunAsync(userId, true));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
             TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
             if (callApiResults.Count() != 0)
             {
-                IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, items.Item2 != string.Empty ? items.Item2 : "沒有任何可執行物件"));
+                IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, !string.IsNullOrEmpty(items.Item2) ? items.Item2 : "沒有任何可執行物件"));
                 Task task = Task.WhenAll(sendMessagesTask);
                 await task;
             }
@@ -47,11 +48,30 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// 使用者手動觸發 Api
         /// </summary>
         /// <param name="userId"> Telegram user id </param>
+        /// <param name="newRequest"> 是否用新的請求執行 </param>
         /// <returns> (Telegram user id, call api result message) </returns>
-        public async Task<(long, string)> RunAsync(long userId)
+        public async Task<(long, string)> RunAsync(long userId, bool newRequest = false)
+        {
+            if (newRequest)
+            {
+                using IServiceScope scope = this.serviceProvider.CreateScope();
+                return await RunAsync(userId, scope.ServiceProvider);
+            }
+            else
+                return await RunAsync(userId, this.serviceProvider);
+        }
+
+        /// <summary>
+        /// 使用者手動觸發 Api
+        /// </summary>
+        /// <param name="userId"> Telegram user id </param>
+        /// <param name="serviceProvider"></param>
+        /// <returns> (Telegram user id, call api result message) </returns>
+        private async Task<(long, string)> RunAsync(long userId, IServiceProvider serviceProvider)
         {
             try
             {
+                BotDbContext db = serviceProvider.GetService(typeof(BotDbContext)) as BotDbContext;
                 List<AppAuth> appAuths = await db.AppAuths.Include(appAuth => appAuth.AzureApp).Where(auth => auth.AzureApp.TelegramUser.Id == userId).ToListAsync();
                 IEnumerable<Task<(string, string)>> accessTokenTasks = appAuths.Select(appAuth => defaultGraphApi.ReflashTokenAsync(appAuth));
                 IEnumerable<(string, string)> accessTokens = await Task.WhenAll(accessTokenTasks);
@@ -65,12 +85,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 logger.LogInformation($"userId: {userId}, Api呼叫執行完成");
                 return (userId, string.Join('\n', callApiResults));
             }
-            catch(BotException ex)
+            catch (BotException ex)
             {
                 logger.LogError($"userId: {userId}, ErrorMessage: {ex.Message}");
                 return (userId, ex.Message);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 logger.LogError($"userId: {userId}, ErrorMessage: {ex.Message}");
                 return (userId, "發生異常錯誤，請聯絡系統管理員調取日誌訊息");

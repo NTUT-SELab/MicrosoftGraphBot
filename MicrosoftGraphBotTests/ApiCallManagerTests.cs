@@ -59,7 +59,7 @@ namespace MicrosoftGraphBotTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             ApiCallManager apiCallManager = serviceProvider.GetRequiredService<ApiCallManager>();
-            (long, string) result = await apiCallManager.RunAsync(123456789);
+            (long, string) result = await apiCallManager.RunAsync(123456789, true);
             string[] message = result.Item2.Split('\n');
 
             Assert.AreEqual(2, message.Length);
