@@ -1,6 +1,6 @@
 variables:
   buildConfiguration: 'Release'
-  version: '1.0.0.0'
+  version: '1.0.1.0'
 
 stages:
 - stage: Build_and_Test
