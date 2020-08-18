@@ -55,7 +55,17 @@ namespace MicrosoftGraphAPIBot.Telegram
                 }
 
                 logger.LogInformation($"Telegram user: {telegramId}(@{userName}) 升級管理者權限:成功");
-                await db.SaveChangesAsync();
+                if (!db.Database.IsInMemory())
+                {
+                    // https://docs.microsoft.com/zh-tw/ef/core/saving/explicit-values-generated-properties#explicit-values-into-sql-server-identity-columns
+                    await db.Database.OpenConnectionAsync();
+                    db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers ON");
+                    db.SaveChanges();
+                    db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
+                    await db.Database.CloseConnectionAsync();
+                }
+                else
+                    await db.SaveChangesAsync();
                 return true;
             }
 
@@ -84,7 +94,17 @@ namespace MicrosoftGraphAPIBot.Telegram
                 db.TelegramUsers.Update(telegramUser);
             }
 
-            await db.SaveChangesAsync();
+            if (!db.Database.IsInMemory())
+            {
+                // https://docs.microsoft.com/zh-tw/ef/core/saving/explicit-values-generated-properties#explicit-values-into-sql-server-identity-columns
+                await db.Database.OpenConnectionAsync();
+                db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers ON");
+                db.SaveChanges();
+                db.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TelegramUsers OFF");
+                await db.Database.CloseConnectionAsync();
+            }
+            else
+                await db.SaveChangesAsync();
         }
 
         #region Azure app
