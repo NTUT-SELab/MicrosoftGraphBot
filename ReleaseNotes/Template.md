@@ -1,5 +1,3 @@
-# Release - <version>
-
 ## 新功能:
 
 ## 變更:

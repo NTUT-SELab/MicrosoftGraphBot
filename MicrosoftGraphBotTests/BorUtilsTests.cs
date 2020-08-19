@@ -16,6 +16,7 @@ namespace MicrosoftGraphBotTests
             {
                 { "JoinBotMessage", string.Empty },
                 { "Cron", string.Empty },
+                { "CheckVerCron", string.Empty },
                 { "AdminPassword", string.Empty },
                 { "Telegram:Token", string.Empty },
                 { "MSSQL:Host", string.Empty },

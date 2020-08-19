@@ -1,6 +1,7 @@
 ﻿{
   "JoinBotMessage": "歡迎使用 Microsoft Graph Bot",
   "Cron": "0 */4 * * *",
+  "CheckVerCron": "0 */12 * * *",
   "AdminPassword": "P@ssw0rd",
   "Telegram": {
     "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"

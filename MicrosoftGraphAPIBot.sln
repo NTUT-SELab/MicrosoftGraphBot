@@ -9,12 +9,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		appsettings.json.example = appsettings.json.example
-		MicrosoftGraphAPIBot.dgml = MicrosoftGraphAPIBot.dgml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MicrosoftGraphBotTests", "MicrosoftGraphBotTests\MicrosoftGraphBotTests.csproj", "{6B0A57C5-243D-427C-A4A0-1585118D7E1D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MSGraphAuthApi", "MSGraphAuthApi\MSGraphAuthApi.csproj", "{06B6E832-30B2-40BE-84AD-143BE9F1905E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MSGraphAuthApi", "MSGraphAuthApi\MSGraphAuthApi.csproj", "{06B6E832-30B2-40BE-84AD-143BE9F1905E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

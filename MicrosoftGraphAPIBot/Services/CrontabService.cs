@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.Services
 {
-    public class ApiCallService : IHostedService
+    public class CrontabService : IHostedService
     {
         private readonly IHost host;
         private readonly ILogger logger;
@@ -22,7 +22,7 @@ namespace MicrosoftGraphAPIBot.Services
         private BackgroundJobServer backgroundJobServer;
         private bool isStart = false;
 
-        public ApiCallService(IHost host, ILogger<ApiCallService> logger, IConfiguration configuration, IServiceProvider serviceProvider, HangfireJob hangfireJob) =>
+        public CrontabService(IHost host, ILogger<CrontabService> logger, IConfiguration configuration, IServiceProvider serviceProvider, HangfireJob hangfireJob) =>
             (this.host, this.logger, this.configuration, this.serviceProvider, this.hangfireJob) = (host, logger, configuration, serviceProvider, hangfireJob);
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -72,6 +72,7 @@ namespace MicrosoftGraphAPIBot.Services
                 foreach (var recurringJob in connection.GetRecurringJobs())
                     RecurringJob.RemoveIfExists(recurringJob.Id);
             RecurringJob.AddOrUpdate(() => hangfireJob.CallApiJob(), configuration["Cron"]);
+            RecurringJob.AddOrUpdate(() => hangfireJob.CheckVerJob(), configuration["CheckVerCron"]);
 
             backgroundJobServer = new BackgroundJobServer();
         }
@@ -108,6 +109,13 @@ namespace MicrosoftGraphAPIBot.Services
             IServiceProvider scopeServiceProvider = scope.ServiceProvider;
             ApiCallManager apiCallManager = scopeServiceProvider.GetService(typeof(ApiCallManager)) as ApiCallManager;
             await apiCallManager.RunAsync();
+        }
+
+        public async Task CheckVerJob()
+        {
+            using IServiceScope scope = this.serviceProvider.CreateScope();
+            IServiceProvider scopeServiceProvider = scope.ServiceProvider;
+            await Utils.CheckAppVersion(scopeServiceProvider);
         }
     }
 }

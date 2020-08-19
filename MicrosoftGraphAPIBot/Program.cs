@@ -11,7 +11,7 @@ using Telegram.Bot;
 
 namespace MicrosoftGraphAPIBot
 {
-    static class Program
+    public class Program
     {
         static void Main(string[] args)
         {
@@ -59,7 +59,7 @@ namespace MicrosoftGraphAPIBot
                     services.AddScoped<TelegramCommandGenerator>();
                     services.AddHostedService<StartupService>();
                     services.AddHostedService<TelegramBotService>();
-                    services.AddHostedService<ApiCallService>();
+                    services.AddHostedService<CrontabService>();
                 });
     }
 }

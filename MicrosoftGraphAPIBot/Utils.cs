@@ -1,6 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using MicrosoftGraphAPIBot.Models;
+using MicrosoftGraphAPIBot.Telegram;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -23,12 +32,68 @@ namespace MicrosoftGraphAPIBot
             return string.Format("Data Source={0},{1};Initial Catalog={2};User ID={3};Password={4}", SQLHost, SQLPort, SQLDataBase, SQLUser, SQLPassword);
         }
 
-        #region Config
+        /// <summary>
+        /// 檢查是否有新版本，並通知管理員
+        /// </summary>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static async Task CheckAppVersion(IServiceProvider serviceProvider)
+        {
+            bool needUpdate = await CheckNeedUpdate(serviceProvider);
+
+            if (needUpdate)
+            {
+                BotDbContext db = serviceProvider.GetService(typeof(BotDbContext)) as BotDbContext;
+                List<long> usersIds = await db.TelegramUsers.AsQueryable().Where(user => user.IsAdmin).Select(user => user.Id).ToListAsync();
+
+                TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
+                IEnumerable<Task> sendMessageTasks = usersIds.Select(userId => telegramHandler.SendMessage(userId, "Bot 有新版本需要更新 \n https://github.com/NTUT-SELab/MicrosoftGraphBot"));
+                await Task.WhenAll(sendMessageTasks);
+            }
+        }
+
+        /// <summary>
+        /// 檢查是否有新版本
+        /// </summary>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        private static async Task<bool> CheckNeedUpdate(IServiceProvider serviceProvider)
+        {
+            ILogger logger = serviceProvider.GetService(typeof(ILogger<Program>)) as ILogger<Program>;
+            
+            try
+            {
+                Version localVer = new Version(FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location).FileVersion.ToString());
+
+                IHttpClientFactory clientFactory = serviceProvider.GetService(typeof(IHttpClientFactory)) as IHttpClientFactory;
+                HttpClient httpClient = clientFactory.CreateClient();
+                httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "http://developer.github.com/v3/#user-agent-required");
+                string githubJson = await httpClient.GetStringAsync("https://api.github.com/repos/NTUT-SELab/MicrosoftGraphBot/releases/latest");
+
+                JObject jObject = JObject.Parse(githubJson);
+                Version remoteVer = new Version(jObject["tag_name"].ToString());
+
+                logger.LogDebug($"localVer: {localVer}");
+                logger.LogDebug($"remoteVer: {remoteVer}");
+
+                if (remoteVer > localVer)
+                    return true;
+                return false;
+            }
+            catch(Exception ex)
+            {
+                logger.LogError($"CheckNeedUpdate: {ex.Message}");
+                return false;
+            }
+        }
+
+#region Config
 
         private static readonly string[] configKeys = new string[]
         {
             "JoinBotMessage",
             "Cron",
+            "CheckVerCron",
             "AdminPassword",
             "Telegram:Token",
             "MSSQL:Host",
@@ -59,7 +124,7 @@ namespace MicrosoftGraphAPIBot
             return isExist;
         }
 
-        #endregion
+#endregion
     }
 
     [Serializable]

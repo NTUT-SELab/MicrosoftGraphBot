@@ -55,6 +55,7 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 |----|----|----|
 ||JoinBotMessage|使用者第一次與 Bot 建立聯繫時，Bot的問候語|
 ||Cron|Api 排程觸發的頻率，請參考 Crontab 格式|
+||CheckVerCron|檢查 **Bot** 是否有新版本的頻率，請參考 Crontab 格式|
 ||AdminPassword|管理者密碼，與 Bot 溝通後，輸入此密碼可取得管理者權限|
 |Telegram|Token|Telegram bot token，請與 [Telegram bot father](https://core.telegram.org/bots) 聊天建立 Telegram bot 並取得 Token|
 |MSSQL|Host|SQL server 主機位置 (備註:使用 Docker compose 在 MSSQL 項不需要做任何更改)|
