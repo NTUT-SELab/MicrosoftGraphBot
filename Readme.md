@@ -2,9 +2,9 @@
 
 Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cloud 服務資源。 註冊應用程式並取得使用者或服務的驗證權杖之後，您就可以對 Microsoft Graph API 提出要求。 
 
-本專案基於教育與開發目的建立自動化呼叫 Microsoft Graph API 機器人伺服器，該機器人會根據組態檔的設定排成呼叫 Microsoft Graph API。
+藉由本專案建立自動化觸發 Microsoft Graph API 機器人伺服器，自動化對 Office365 開發者訂閱續約，該機器人會根據組態檔的設定排成觸發 Microsoft Graph API。
 
-應用: Office365 開發者 😘
+應用: [Office365 開發者訂閱](https://developer.microsoft.com/en-us/microsoft-365/dev-program) 😘
 
 ||Ubuntu|Windows|MacOS|
 |----|----|----|----|
@@ -14,9 +14,10 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 |document|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=document&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|
 |release|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Ubuntu%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20Windows%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|[![Build Status](https://dev.azure.com/KennethTang/Github/_apis/build/status/NTUT-SELab.MicrosoftGraphBot?branchName=release&jobname=Build%20and%20test%20project%20on%20MacOS%20platform)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
 
-||Master|develop|hotfix|document|release|
+||master|develop|hotfix|document|release|
 |----|----|----|----|----|----|
-|Coverage|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/master)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/develop)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/hotfix)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/document)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/release)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)
+|CodeQL|![CodeQL](https://github.com/NTUT-SELab/MicrosoftGraphBot/workflows/CodeQL/badge.svg?branch=master)|![CodeQL](https://github.com/NTUT-SELab/MicrosoftGraphBot/workflows/CodeQL/badge.svg?branch=develop)|![CodeQL](https://github.com/NTUT-SELab/MicrosoftGraphBot/workflows/CodeQL/badge.svg?branch=hotfix)|![CodeQL](https://github.com/NTUT-SELab/MicrosoftGraphBot/workflows/CodeQL/badge.svg?branch=document)|![CodeQL](https://github.com/NTUT-SELab/MicrosoftGraphBot/workflows/CodeQL/badge.svg?branch=release)|
+|Coverage|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/master)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=master)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/develop)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=develop)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/hotfix)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=hotfix)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/document)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=document)|[![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/KennethTang/github/9/release)](https://dev.azure.com/KennethTang/Github/_build/latest?definitionId=9&branchName=release)|
 
 ||Github|Docker|
 |----|----|----|
@@ -99,6 +100,13 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
         root@docker_server:~/docker$ docker-compose up -d
         ```
 
+- 更新版本方法
+  ```
+  docker-compose down
+  docker-compose pull
+  docker-compose up -d
+  ```
+
 ### 其它
 1. 自行安裝 [SQL server](https://www.microsoft.com/zh-tw/sql-server/sql-server-downloads)
 1. 編輯 **appsettings.json** 內 MSSQL 配置項的配置
@@ -131,6 +139,13 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Update message
 - Delete message
 - message: send
+
+### [OneDrive API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/9)
+- List children of a driveItem
+- Create a new folder in a drive
+- Update DriveItem properties
+- Delete a DriveItem
+- Move a DriveItem to a new folder
 
 ## 版本:
 請至 [ReleaseNotes](./ReleaseNotes) 資料夾查看變更紀錄。
