@@ -147,6 +147,14 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Delete a DriveItem
 - Move a DriveItem to a new folder
 
+### [Permissions API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/11)
+- Create a sharing link for a DriveItem
+- Accessing shared DriveItems
+- List sharing permissions on a driveItem
+- Get sharing permission for a file or folder
+- Update sharing permission
+- Delete a sharing permission from a file or folder
+
 ## 版本:
 請至 [ReleaseNotes](./ReleaseNotes) 資料夾查看變更紀錄。
 

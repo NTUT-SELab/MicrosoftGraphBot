@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -30,14 +30,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             try
             {
-                DriveItem item = await CreateFolderAsync(graphClient);
-                IDriveItemChildrenCollectionPage items = await ListDriveItemAsync(graphClient);
+                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                if (!isCreate)
-                    return false;
+                Trace.Assert(isCreate);
 
-                await DeleteDriveItemAsync(graphClient, item.Id);
+                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch (Exception ex)
@@ -57,21 +56,19 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             try
             {
-                DriveItem folderItem = await CreateFolderAsync(graphClient);
-                IDriveItemChildrenCollectionPage items = await ListDriveItemAsync(graphClient);
+                DriveItem folderItem = await FileApi.CreateFolderAsync(graphClient);
+                IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Name == folderItem.Name);
-                if (!isCreate)
-                    return false;
+                Trace.Assert(isCreate);
 
-                DriveItem newFolderItem = await UpdateDriveItemAsync(graphClient, folderItem.Id);
-                items = await ListDriveItemAsync(graphClient);
+                DriveItem newFolderItem = await FileApi.UpdateDriveItemAsync(graphClient, folderItem.Id);
+                items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isUpdate = items.CurrentPage.Any(driveItem => driveItem.Name == newFolderItem.Name);
-                if (!isUpdate)
-                    return false;
+                Trace.Assert(isUpdate);
 
-                await DeleteDriveItemAsync(graphClient, folderItem.Id);
+                await FileApi.DeleteDriveItemAsync(graphClient, folderItem.Id);
                 return true;
             }
             catch (Exception ex)
@@ -92,21 +89,19 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             try
             {
                 DriveItem[] folderItem = new DriveItem[2];
-                folderItem[0] = await CreateFolderAsync(graphClient);
-                folderItem[1] = await CreateFolderAsync(graphClient);
-                IDriveItemChildrenCollectionPage items = await ListDriveItemAsync(graphClient);
+                folderItem[0] = await FileApi.CreateFolderAsync(graphClient);
+                folderItem[1] = await FileApi.CreateFolderAsync(graphClient);
+                IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
                 bool isUpdate = items.CurrentPage.Count(driveItem => folderItem.Select(c => c.Id).Contains(driveItem.Id)) == 2;
-                if (!isUpdate)
-                    return false;
+                Trace.Assert(isUpdate);
 
-                await MoveDriveItemAsync(graphClient, folderItem[0].Id, folderItem[1].Id);
+                await FileApi.MoveDriveItemAsync(graphClient, folderItem[0].Id, folderItem[1].Id);
 
-                IDriveItemChildrenCollectionPage folder1Items = await GetDriveItemAsync(graphClient, folderItem[0].Id);
+                IDriveItemChildrenCollectionPage folder1Items = await FileApi.GetDriveItemAsync(graphClient, folderItem[0].Id);
                 bool isMove = folder1Items.CurrentPage.Any(driveItem => driveItem.Id == folderItem[1].Id);
-                if (!isMove)
-                    return false;
+                Trace.Assert(isMove);
 
-                await DeleteDriveItemAsync(graphClient, folderItem[0].Id);
+                await FileApi.DeleteDriveItemAsync(graphClient, folderItem[0].Id);
                 return true;
             }
             catch (Exception ex)
@@ -114,118 +109,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 logger.LogError(ex.Message);
                 return false;
             }
-        }
-
-        /// <summary>
-        /// 列出OneDrive所有內容 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <returns></returns>
-        private static async Task<IDriveItemChildrenCollectionPage> ListDriveItemAsync(IGraphServiceClient graphClient)
-        {
-            IDriveItemChildrenCollectionPage children = await graphClient.Me.Drive.Root.Children
-                .Request()
-                .GetAsync();
-
-            return children;
-        }
-
-        /// <summary>
-        /// 列出指定目錄內容 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        private static async Task<IDriveItemChildrenCollectionPage> GetDriveItemAsync(IGraphServiceClient graphClient, string itemId)
-        {
-            return await graphClient.Me.Drive.Items[itemId].Children
-                        .Request()
-                        .GetAsync();
-        }
-
-        /// <summary>
-        /// 新增資料夾 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <returns></returns>
-        private static async Task<DriveItem> CreateFolderAsync(IGraphServiceClient graphClient)
-        {
-            var driveItem = new DriveItem
-            {
-                Name = Guid.NewGuid().ToString(),
-                Folder = new Folder
-                {
-                },
-                AdditionalData = new Dictionary<string, object>()
-                {
-                    {"@microsoft.graph.conflictBehavior", "rename"}
-                }
-            };
-
-            DriveItem item =  await graphClient.Me.Drive.Root.Children
-                                .Request()
-                                .AddAsync(driveItem);
-
-            await Task.Delay(5000);
-            return item;
-        }
-
-        /// <summary>
-        /// 刪除資料夾 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        private static async Task DeleteDriveItemAsync(IGraphServiceClient graphClient, string itemId)
-        {
-            await graphClient.Me.Drive.Items[itemId]
-                .Request()
-                .DeleteAsync();
-        }
-
-        /// <summary>
-        /// 更新指定項目內容 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        private static async Task<DriveItem> UpdateDriveItemAsync(IGraphServiceClient graphClient, string itemId)
-        {
-            var driveItem = new DriveItem
-            {
-                Name = Guid.NewGuid().ToString()
-            };
-
-            DriveItem item = await graphClient.Me.Drive.Items[itemId]
-                                .Request()
-                                .UpdateAsync(driveItem);
-
-            await Task.Delay(5000);
-            return item;
-        }
-
-        /// <summary>
-        /// 移動指定項目 API
-        /// </summary>
-        /// <param name="graphClient"></param>
-        /// <param name="parentItemId"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
-        private static async Task MoveDriveItemAsync(IGraphServiceClient graphClient, string parentItemId, string itemId)
-        {
-            var driveItem = new DriveItem
-            {
-                ParentReference = new ItemReference
-                {
-                    Id = parentItemId
-                },
-            };
-
-            await graphClient.Me.Drive.Items[itemId]
-                .Request()
-                .UpdateAsync(driveItem);
-
-            await Task.Delay(5000);
         }
     }
 }
