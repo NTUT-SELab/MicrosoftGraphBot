@@ -19,7 +19,8 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private readonly static List<string> scopes = new List<string> {
             "offline_access user.read",
             OutlookApi.Scope,
-            OneDriveApi.Scope
+            OneDriveApi.Scope,
+            CalendarApi.Scope
         };
         public readonly static string Scope = string.Join(' ', scopes);
 

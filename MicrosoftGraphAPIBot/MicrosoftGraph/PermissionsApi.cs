@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
+    /// <summary>
+    /// Permissions Api 腳本
+    /// </summary>
     public class PermissionsApi : GraphApi
     {
         public PermissionsApi(IGraphServiceClient graphClient) : base(graphClient)

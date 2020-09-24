@@ -2,7 +2,7 @@
 
 Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cloud 服務資源。 註冊應用程式並取得使用者或服務的驗證權杖之後，您就可以對 Microsoft Graph API 提出要求。 
 
-藉由本專案建立自動化觸發 Microsoft Graph API 機器人伺服器，自動化對 Office365 開發者訂閱續約，該機器人會根據組態檔的設定排成觸發 Microsoft Graph API。
+藉由本專案建立自動化觸發 Microsoft Graph API 機器人伺服器，滿足微軟 Office365 開發者訂閱續約條件並自動續約，該機器人會根據組態檔的設定排成觸發 Microsoft Graph API。
 
 應用: [Office365 開發者訂閱](https://developer.microsoft.com/en-us/microsoft-365/dev-program) 😘
 
@@ -154,6 +154,12 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Get sharing permission for a file or folder
 - Update sharing permission
 - Delete a sharing permission from a file or folder
+
+### [Calendar API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/12)
+- List calendars
+- Create Calendar
+- Update calendar
+- Delete calendar
 
 ## 版本:
 請至 [ReleaseNotes](./ReleaseNotes) 資料夾查看變更紀錄。

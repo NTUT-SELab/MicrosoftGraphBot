@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
 {
+    /// <summary>
+    /// OneDrive Api 腳本
+    /// </summary>
     public class OneDriveApi : GraphApi
     {
         public const string Scope = "Files.Read Files.ReadWrite Files.Read.All Files.ReadWrite.All";

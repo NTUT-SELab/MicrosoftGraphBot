@@ -131,6 +131,7 @@ namespace MicrosoftGraphAPIBot
     public class BotException : Exception
     {
 #nullable enable
+        public BotException() : base("Bot exception.") { }
         public BotException(string? message) : base(message) { }
 
         public BotException(string? message, Exception? innerException) : base(message, innerException) { }
