@@ -71,8 +71,8 @@ namespace MicrosoftGraphAPIBot.Services
             using (var connection = JobStorage.Current.GetConnection())
                 foreach (var recurringJob in connection.GetRecurringJobs())
                     RecurringJob.RemoveIfExists(recurringJob.Id);
-            RecurringJob.AddOrUpdate(() => hangfireJob.CallApiJob(), configuration["Cron"]);
-            RecurringJob.AddOrUpdate(() => hangfireJob.CheckVerJob(), configuration["CheckVerCron"]);
+            RecurringJob.AddOrUpdate(() => hangfireJob.CallApiJob(), configuration["Cron"], TimeZoneInfo.Local);
+            RecurringJob.AddOrUpdate(() => hangfireJob.CheckVerJob(), configuration["CheckVerCron"], TimeZoneInfo.Local);
 
             backgroundJobServer = new BackgroundJobServer();
         }

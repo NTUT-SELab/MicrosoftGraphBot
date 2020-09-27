@@ -130,7 +130,6 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
       ```
 
 ## 支援 API:
-**未來還會持續更新新的Api**
 
 ### [Outlook API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/3):
 - List messages
@@ -160,6 +159,12 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Create Calendar
 - Update calendar
 - Delete calendar
+
+### [Personal contacts API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/10)
+- Get contact
+- Create Contact
+- Update contact
+- Delete contact
 
 ## 版本:
 請至 [ReleaseNotes](./ReleaseNotes) 資料夾查看變更紀錄。
