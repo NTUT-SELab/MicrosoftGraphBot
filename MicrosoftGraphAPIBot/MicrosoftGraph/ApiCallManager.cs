@@ -36,7 +36,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
             TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
-            if (callApiResults.Count() != 0)
+            if (callApiResults.Any())
             {
                 IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, !string.IsNullOrEmpty(items.Item2) ? items.Item2 : "沒有任何可執行物件"));
                 Task task = Task.WhenAll(sendMessagesTask);
@@ -73,15 +73,34 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 BotDbContext db = serviceProvider.GetService(typeof(BotDbContext)) as BotDbContext;
                 List<AppAuth> appAuths = await db.AppAuths.Include(appAuth => appAuth.AzureApp).Where(auth => auth.AzureApp.TelegramUser.Id == userId).ToListAsync();
-                IEnumerable<Task<(string, string)>> accessTokenTasks = appAuths.Select(appAuth => defaultGraphApi.ReflashTokenAsync(appAuth));
-                IEnumerable<(string, string)> accessTokens = await Task.WhenAll(accessTokenTasks);
-                db.AppAuths.UpdateRange(appAuths);
-                Task<int> saveChangeTask = db.SaveChangesAsync();
 
-                IEnumerable<Task<string>> callApiTasks = accessTokens.Select(accessToken => CallApiAsync(accessToken.Item1, accessToken.Item2));
-                IEnumerable<string> callApiResults = await Task.WhenAll(callApiTasks);
+                IEnumerable<AppAuth> invalidScopeAuths = appAuths.Where(auth => auth.Scope != DefaultGraphApi.Scope);
+                IEnumerable<AppAuth> validScopeAuths = appAuths.Where(auth => auth.Scope == DefaultGraphApi.Scope);
 
-                await saveChangeTask;
+                if (invalidScopeAuths.Any())
+                {
+                    List<string> messages = new List<string> { "無效授權:" };
+                    messages.AddRange(invalidScopeAuths.Select(auth => auth.Name));
+                    TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
+                    await telegramHandler.SendMessage(userId, string.Join('\n', messages));
+                    await telegramHandler.ReBindAuth(userId);
+                }
+
+                List<string> callApiResults = new List<string>();
+
+                if (validScopeAuths.Any())
+                {
+                    IEnumerable<Task<(string, string)>> accessTokenTasks = appAuths.Select(appAuth => defaultGraphApi.ReflashTokenAsync(appAuth));
+                    IEnumerable<(string, string)> accessTokens = await Task.WhenAll(accessTokenTasks);
+                    db.AppAuths.UpdateRange(appAuths);
+                    Task<int> saveChangeTask = db.SaveChangesAsync();
+
+                    IEnumerable<Task<string>> callApiTasks = accessTokens.Select(accessToken => CallApiAsync(accessToken.Item1, accessToken.Item2));
+                    callApiResults.AddRange(await Task.WhenAll(callApiTasks));
+
+                    await saveChangeTask;
+                }
+
                 logger.LogInformation($"userId: {userId}, Api呼叫執行完成");
                 return (userId, string.Join('\n', callApiResults));
             }

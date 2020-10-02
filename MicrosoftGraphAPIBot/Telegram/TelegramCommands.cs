@@ -19,6 +19,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string BindAuth = "/bindAuth";
         public const string UnbindAuth = "/unbindAuth";
         public const string QueryAuth = "/queryAuth";
+        public const string RebindAuth = "/rebindAuth";
         public const string RunApiTask = "/runApi";
         public const string RunAllApiTask = "/runAllApi";
         public const string AddAdminPermission = "/addAdminPermission";
@@ -43,6 +44,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.QueryApp, "查詢應用程式" },
             { TelegramCommand.BindAuth, "綁定使用者授權到指定應用程式" },
             { TelegramCommand.UnbindAuth, "解除綁定使用者授權" },
+            { TelegramCommand.RebindAuth, "重新綁定使用者授權到指定應用程式" },
             { TelegramCommand.QueryAuth, "查詢使用者授權" },
             { TelegramCommand.RunApiTask, "手動執行 Api 任務" },
             { TelegramCommand.RunAllApiTask, "手動執行 Api 任務(所有使用者)"},
@@ -93,7 +95,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 commands.AddRange(new List<string> { TelegramCommand.DeleteApp, TelegramCommand.QueryApp, TelegramCommand.BindAuth });
 
                 if (await telegramHandler.AuthCountAsync(userId) > 0)
-                    commands.AddRange(new List<string> { TelegramCommand.UnbindAuth, TelegramCommand.QueryAuth });
+                    commands.AddRange(new List<string> { TelegramCommand.UnbindAuth, TelegramCommand.QueryAuth, TelegramCommand.RebindAuth });
             }
 
             return commands.Select(command => (command, instructions[command]));

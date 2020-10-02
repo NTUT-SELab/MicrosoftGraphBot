@@ -53,8 +53,10 @@ namespace MicrosoftGraphBotTests
             jObject["access_token"] = await Utils.GetTestToken();
             json = JsonConvert.SerializeObject(jObject);
             var mocks = Utils.CreateDefaultGraphApiMock(json);
+            var telegramMock = new Mock<TelegramController>(null, null, null, null, null, null, null).Object;
             await Utils.SetDefaultValueDbContextAsync();
             services.AddScoped(service => mocks.Item2);
+            services.AddScoped(service => telegramMock);
 
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
@@ -63,6 +65,11 @@ namespace MicrosoftGraphBotTests
             string[] message = result.Item2.Split('\n');
 
             Assert.AreEqual(2, message.Length);
+
+            result = await apiCallManager.RunAsync(987654321, true);
+            message = result.Item2.Split('\n');
+
+            Assert.AreEqual(1, message.Length);
         }
 
         [TestMethod]

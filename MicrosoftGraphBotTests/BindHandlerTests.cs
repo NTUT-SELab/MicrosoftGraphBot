@@ -24,6 +24,7 @@ namespace MicrosoftGraphBotTests
             await Utils.SetOneValueDbContextAsync(clientId);
             BotDbContext db = Utils.CreateMemoryDbContext();
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+            Guid authId = (await db.AppAuths.AsQueryable().FirstAsync(item => item.AzureAppId == clientId)).Id;
 
             BindHandler bindHandler = new BindHandler(db, defaultGraphApi);
             (string, string) results = await bindHandler.GetAuthUrlAsync(clientId.ToString());
@@ -31,6 +32,9 @@ namespace MicrosoftGraphBotTests
             string email = "test@onmicrosoft.com";
             string message = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(BindHandler.AppUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
 
+            Assert.AreEqual(message, results.Item2);
+
+            results = await bindHandler.GetAuthUrlAsync(authId.ToString(), false);
             Assert.AreEqual(message, results.Item2);
         }
 
@@ -255,6 +259,61 @@ namespace MicrosoftGraphBotTests
 
             BindHandler bindHandler = new BindHandler(db, null);
             await bindHandler.UnbindAuthAsync(authId1.ToString());
+        }
+
+        [TestMethod]
+        public async Task TestUpdateAuthAsync()
+        {
+            string token = await Utils.GetTestToken();
+            string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "ValidAuthResponse.json");
+            string authResponse = File.ReadAllText(authResponsePath);
+            string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenSuccessResult.json");
+            string json = File.ReadAllText(testResultPath);
+            JObject jObject = JObject.Parse(json);
+            jObject["access_token"] = token;
+            json = JsonConvert.SerializeObject(jObject);
+            Guid clientId = Guid.NewGuid();
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
+            await Utils.SetOneValueDbContextAsync(clientId);
+            BotDbContext db = Utils.CreateMemoryDbContext();
+            DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
+            Guid authId = (await db.AppAuths.AsQueryable().FirstAsync(item => item.AzureAppId == clientId)).Id;
+
+            string name = "test Bind";
+            BindHandler bindHandler = new BindHandler(db, defaultGraphApi);
+            await bindHandler.UpdateAuthAsync(authId.ToString(), authResponse);
+            await db.DisposeAsync();
+            db = Utils.CreateMemoryDbContext();
+            Assert.AreEqual(1, await db.AppAuths.AsQueryable().CountAsync());
+            Assert.IsTrue(await db.AppAuths.AsQueryable().AnyAsync(appAuth => appAuth.Id == authId && appAuth.RefreshToken == jObject["refresh_token"].ToString()));
+        }
+
+        [ExpectedException(typeof(BotException))]
+        [TestMethod]
+        public async Task TestUpdateAuthInvalidAuthAsync()
+        {
+            string authResponsePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "InvalidAuthResponse.json");
+            string authResponse = File.ReadAllText(authResponsePath);
+
+            BindHandler bindHandler = new BindHandler(null, null);
+            await bindHandler.UpdateAuthAsync(Guid.Empty.ToString(), authResponse);
+        }
+
+        [ExpectedException(typeof(BotException))]
+        [TestMethod]
+        public async Task TestUpdateAuthInvalidJsonAsync()
+        {
+            string authResponse = @"{ ""Hi"": ""123"" }";
+            BindHandler bindHandler = new BindHandler(null, null);
+            await bindHandler.UpdateAuthAsync(Guid.Empty.ToString(), authResponse);
+        }
+
+        [ExpectedException(typeof(BotException))]
+        [TestMethod]
+        public async Task TestUpdateAuthErrorFormatAsync()
+        {
+            BindHandler bindHandler = new BindHandler(null, null);
+            await bindHandler.UpdateAuthAsync(Guid.Empty.ToString(), string.Empty);
         }
 
         [TestCleanup]

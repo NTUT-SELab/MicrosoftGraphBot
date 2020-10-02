@@ -87,7 +87,7 @@ namespace MicrosoftGraphBotTests
             TelegramCommandGenerator telegramCommand = new TelegramCommandGenerator(telegramHandler);
 
             var result = await telegramCommand.GenerateBindCommandsAsync(123456789);
-            Assert.AreEqual(6, result.Count());
+            Assert.AreEqual(7, result.Count());
         }
 
         [TestMethod]

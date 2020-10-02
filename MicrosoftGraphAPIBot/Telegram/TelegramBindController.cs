@@ -342,6 +342,120 @@ namespace MicrosoftGraphAPIBot.Telegram
         }
 
         /// <summary>
+        /// 重新驗證使用者的 o365 授權
+        /// 
+        /// 提供使用者選擇 o365 授權
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        private async Task ReBindAuth(Message message)
+        {
+            await ReBindAuth(message.Chat.Id);
+        }
+
+        /// <summary>
+        /// 重新驗證使用者的 o365 授權
+        /// 
+        /// 提供使用者選擇 o365 授權
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task ReBindAuth(long userId)
+        {
+            var keyboardMarkup = await GetUserAuthsNameAsync(userId);
+            string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
+
+            await botClient.SendTextMessageAsync(
+                chatId: userId,
+                text: command + "\n" +
+                    "選擇要重新驗證的授權",
+                replyMarkup: keyboardMarkup);
+        }
+
+        /// <summary>
+        /// 重新驗證使用者的 o365 授權
+        /// 
+        /// 產生授權連結
+        /// </summary>
+        /// <param name="callbackQuery"> Telegram callbackQuery object </param>
+        /// <returns></returns>
+        private async Task ReBindAuthCallback(CallbackQuery callbackQuery)
+        {
+            try
+            {
+                (string, string) auth = await bindHandler.GetAuthUrlAsync(callbackQuery.Data, false);
+
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"授權帳號: [授權連結]({auth.Item2})",
+                    ParseMode.MarkdownV2);
+
+                string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
+
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: command + "\n" +
+                        $"授權Id: {auth.Item1}" + "\n" +
+                        "[網頁內容]" + "\n" +
+                        @"範例: {""code"":""asf754...""}",
+                    replyMarkup: new ForceReplyMarkup());
+            }
+            catch (BotException ex)
+            {
+                logger.LogWarning($"User Id: {callbackQuery.From.Id}-產生授權連結失敗");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: callbackQuery.From.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
+        }
+
+        /// <summary>
+        /// 重新驗證使用者的 o365 授權
+        /// 
+        /// 綁定授權程序
+        /// </summary>
+        /// <param name="message"> Telegram message object </param>
+        /// <returns></returns>
+        private async Task ReBindUserAuthReplay(Message message)
+        {
+            try
+            {
+                string clientIdItem = message.ReplyToMessage.Text.Split('\n')[1];
+                string authId = clientIdItem.Split(' ')[1];
+                await bindHandler.UpdateAuthAsync(authId, message.Text);
+
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: "授權綁定成功");
+            }
+            catch (BotException ex)
+            {
+                logger.LogWarning($"User Id: {message.Chat.Id}-綁定授權程序失敗");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: ex.Message);
+
+                await Bind(message);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
+        }
+
+        /// <summary>
         /// 查詢使用者的所有 o365 授權
         /// 
         /// 提供使用者選擇 o365 授權

@@ -42,19 +42,35 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <summary>
         /// 取得 o365 授權網址
         /// </summary>
-        /// <param name="clientId"> Application (client) ID </param>
+        /// <param name="Id"> Application (client) ID or Auth ID </param>
+        /// <param name="isClientId"> Id 參數是否為 Application (client) ID </param>
         /// <returns> (clientId, o365 授權網址) </returns>
-        public async Task<(string, string)> GetAuthUrlAsync(string clientId)
+        public async Task<(string, string)> GetAuthUrlAsync(string Id, bool isClientId = true)
         {
             try
             {
-                string email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
+                string clientId = string.Empty;
+                string email = string.Empty;
+                string authId = string.Empty;
+
+                if (isClientId)
+                {
+                    clientId = Id;
+                    email = await db.AzureApps.AsQueryable().Where(app => app.Id == Guid.Parse(clientId)).Select(app => app.Email).FirstAsync();
+                }
+                else
+                {
+                    var results = await db.AppAuths.Include(auth => auth.AzureApp).Where(auth => auth.Id == Guid.Parse(Id)).Select(auth => new { auth.AzureAppId, auth.AzureApp.Email, auth.Id }).FirstAsync();
+                    (clientId, email, authId) = (results.AzureAppId.ToString(), results.Email, results.Id.ToString());
+                }
                 string url = $"https://login.microsoftonline.com/{DefaultGraphApi.GetTenant(email)}/oauth2/v2.0/authorize?client_id={clientId}&response_type=code&redirect_uri={HttpUtility.UrlEncode(AppUrl)}&response_mode=query&scope={HttpUtility.UrlEncode(DefaultGraphApi.Scope)}";
-                return (clientId, url);
+                if (isClientId)
+                    return (clientId, url);
+                return (authId, url);
             }
             catch (InvalidOperationException ex) when (ex.Message == "Sequence contains no elements")
             {
-                throw new BotException("無效的應用程式");
+                throw new BotException("無效的應用程式或授權");
             }
         }
 
@@ -180,6 +196,46 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 throw new BotException("此 o365 授權不存在");
             }
+        }
+
+        /// <summary>
+        /// 對指定應用程式更新 o365 帳號授權
+        /// </summary>
+        /// <param name="authId"> 授權 Id </param>
+        /// <param name="json"> 含有 Code 訊息的 json 字串 </param>
+        /// <returns></returns>
+        public async Task UpdateAuthAsync(string authId, string json)
+        {
+
+            JObject jObject;
+            try
+            {
+                jObject = JObject.Parse(json);
+            }
+            catch
+            {
+                throw new BotException("網頁內容格式錯誤");
+            }
+            if (jObject.Property("code") == null && jObject.Property("error") != null)
+                throw new BotException(jObject["error"].ToString());
+            if (jObject.Property("code") == null && jObject.Property("error") == null)
+                throw new BotException("網頁內容缺少必要訊息");
+            AppAuth auth = await db.AppAuths.FindAsync(Guid.Parse(authId));
+
+            if (auth == null)
+                throw new BotException("授權不存在");
+
+            Guid appId = auth.AzureAppId;
+            (string, string) tokens = await defaultGraphApi.GetTokenAsync(appId, jObject["code"].ToString());
+            await DefaultGraphApi.GetUserInfoAsync(tokens.Item1);
+
+            auth.RefreshToken = tokens.Item2;
+            auth.UpdateTime = DateTime.Now;
+            auth.Scope = DefaultGraphApi.Scope;
+
+            db.AppAuths.Update(auth);
+
+            await db.SaveChangesAsync();
         }
 
         #endregion

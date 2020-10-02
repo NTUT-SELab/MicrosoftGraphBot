@@ -59,6 +59,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.BindAuth, (BindUserAuth, BindUserAuthReplay, BindUserAuthCallback) },
                 { TelegramCommand.UnbindAuth, (UnbindUserAuth, null, UnbindUserAuthCallback) },
                 { TelegramCommand.QueryAuth, (QueryUserAuth, null, QueryUserAuthCallback) },
+                { TelegramCommand.RebindAuth, (ReBindAuth, ReBindUserAuthReplay, ReBindAuthCallback) },
                 { TelegramCommand.RunApiTask, (RunApiTask, null, null) },
                 { TelegramCommand.RunAllApiTask, (RunAllApiTask, null, null) },
                 { TelegramCommand.AddAdminPermission, (AddAdminPermission, AddAdminPermissionReplay, null) },
