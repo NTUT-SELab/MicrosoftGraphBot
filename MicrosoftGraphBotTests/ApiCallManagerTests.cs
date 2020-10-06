@@ -20,11 +20,18 @@ namespace MicrosoftGraphBotTests
 
         public ApiCallManagerTests()
         {
-            TelegramController telegramHandler = new Mock<TelegramController>(null, null, null, null, null, null, null).Object;
+            var telegramMock = new Mock<TelegramController>(null, null, null, null, null, null, null, null);
+            telegramMock.Setup(m => m.SendMessage(It.IsAny<long>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            telegramMock.Setup(m => m.ReBindAuth(It.IsAny<long>())).Returns(Task.CompletedTask);
+            TelegramController telegramHandler = telegramMock.Object;
 
             services = new ServiceCollection();
             services.AddLogging();
             services.AddScoped<GraphApi, OutlookApi>();
+            services.AddScoped<GraphApi, OneDriveApi>();
+            services.AddScoped<GraphApi, PermissionsApi>();
+            services.AddScoped<GraphApi, CalendarApi>();
+            services.AddScoped<GraphApi, PersonalContactsApi>();
             services.AddScoped<ApiController>();
             services.AddScoped<ApiCallManager>(); 
             services.AddScoped<DefaultGraphApi>();
@@ -53,10 +60,8 @@ namespace MicrosoftGraphBotTests
             jObject["access_token"] = await Utils.GetTestToken();
             json = JsonConvert.SerializeObject(jObject);
             var mocks = Utils.CreateDefaultGraphApiMock(json);
-            var telegramMock = new Mock<TelegramController>(null, null, null, null, null, null, null).Object;
             await Utils.SetDefaultValueDbContextAsync();
             services.AddScoped(service => mocks.Item2);
-            services.AddScoped(service => telegramMock);
 
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
@@ -88,6 +93,21 @@ namespace MicrosoftGraphBotTests
             string[] message = result.Item2.Split('\n');
 
             Assert.AreEqual(1, message.Length);
+        }
+
+        [TestMethod]
+        public async Task TestRunAllAsync()
+        {
+            string testResultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ApiResults", "GetTokenFailedResult.json");
+            string json = File.ReadAllText(testResultPath);
+            var mocks = Utils.CreateDefaultGraphApiMock(json);
+            await Utils.SetDefaultValueDbContextAsync();
+            services.AddScoped(service => mocks.Item2);
+
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            ApiCallManager apiCallManager = serviceProvider.GetRequiredService<ApiCallManager>();
+            await apiCallManager.RunAsync();
         }
 
         [TestCleanup]

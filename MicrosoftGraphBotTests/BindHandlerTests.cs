@@ -279,7 +279,6 @@ namespace MicrosoftGraphBotTests
             DefaultGraphApi defaultGraphApi = new DefaultGraphApi(db, mocks.Item1, mocks.Item2);
             Guid authId = (await db.AppAuths.AsQueryable().FirstAsync(item => item.AzureAppId == clientId)).Id;
 
-            string name = "test Bind";
             BindHandler bindHandler = new BindHandler(db, defaultGraphApi);
             await bindHandler.UpdateAuthAsync(authId.ToString(), authResponse);
             await db.DisposeAsync();

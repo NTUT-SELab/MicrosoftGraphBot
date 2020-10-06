@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MicrosoftGraphAPIBot.MicrosoftGraph;
+using MicrosoftGraphAPIBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         private readonly TelegramCommandGenerator commandGenerator;
         private readonly TelegramHandler telegramHandler;
         private readonly Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)> Controller;
+        private readonly HangfireJob hangfireJob;
 
         /// <summary>
         /// Create a new TelegramHandler instance.
@@ -36,7 +38,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="bindHandler"></param>
         /// <param name="commandGenerator"></param>
         public TelegramController(ILogger<TelegramController> logger, IConfiguration configuration, ITelegramBotClient botClient, 
-            ApiCallManager apiCallManager, BindHandler bindHandler, TelegramCommandGenerator commandGenerator, TelegramHandler telegramHandler)
+            ApiCallManager apiCallManager, BindHandler bindHandler, TelegramCommandGenerator commandGenerator, TelegramHandler telegramHandler, HangfireJob hangfireJob)
         {
             this.logger = logger;
             this.configuration = configuration;
@@ -45,6 +47,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             this.bindHandler = bindHandler;
             this.commandGenerator = commandGenerator;
             this.telegramHandler = telegramHandler;
+            this.hangfireJob = hangfireJob;
 
             // key = 指令, value = (指令對應的方法, 使用者回復指令訊息對應的方法, 使用者回復選擇按鈕對應的方法)
             Controller = new Dictionary<string, (Func<Message, Task>, Func<Message, Task>, Func<CallbackQuery, Task>)>
@@ -62,6 +65,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.RebindAuth, (ReBindAuth, ReBindUserAuthReplay, ReBindAuthCallback) },
                 { TelegramCommand.RunApiTask, (RunApiTask, null, null) },
                 { TelegramCommand.RunAllApiTask, (RunAllApiTask, null, null) },
+                { TelegramCommand.PushApiResult, (RunPushApiResultTask, null, null) },
                 { TelegramCommand.AddAdminPermission, (AddAdminPermission, AddAdminPermissionReplay, null) },
                 { TelegramCommand.RemoveAdminPermission, (RemoveAdminPermission, null, null) }
             };
@@ -73,7 +77,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <param name="chatId"> Telegram 聊天Id </param>
         /// <param name="message"> 要發送的訊息 </param>
         /// <returns></returns>
-        public async Task SendMessage(long chatId, string message)
+        public virtual async Task SendMessage(long chatId, string message)
         {
             await botClient.SendTextMessageAsync(
                 chatId: chatId,

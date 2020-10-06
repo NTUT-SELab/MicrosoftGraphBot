@@ -61,4 +61,26 @@ namespace MicrosoftGraphAPIBot.Models
         [Required]
         public virtual AzureApp AzureApp { get; set; }
     }
+
+    public class ApiResult
+    {
+        public ApiResult()
+        {
+            Id = Guid.NewGuid();
+            Date = DateTime.Now;
+        }
+
+        [Key]
+        [Required]
+        public Guid Id { get; set; }
+        [Required]
+        public DateTime Date { get; set; }
+        [Required]
+        public string Result { get; set; }
+
+        [Required]
+        public long TelegramUserId { get; set; }
+        [Required]
+        public virtual TelegramUser TelegramUser { get; set; }
+    }
 }

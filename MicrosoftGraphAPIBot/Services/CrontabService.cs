@@ -73,6 +73,7 @@ namespace MicrosoftGraphAPIBot.Services
                     RecurringJob.RemoveIfExists(recurringJob.Id);
             RecurringJob.AddOrUpdate(() => hangfireJob.CallApiJob(), configuration["Cron"], TimeZoneInfo.Local);
             RecurringJob.AddOrUpdate(() => hangfireJob.CheckVerJob(), configuration["CheckVerCron"], TimeZoneInfo.Local);
+            RecurringJob.AddOrUpdate(() => hangfireJob.PushApiResultJob(), configuration["PushResultCron"], TimeZoneInfo.Local);
 
             backgroundJobServer = new BackgroundJobServer();
         }
@@ -115,7 +116,14 @@ namespace MicrosoftGraphAPIBot.Services
         {
             using IServiceScope scope = this.serviceProvider.CreateScope();
             IServiceProvider scopeServiceProvider = scope.ServiceProvider;
-            await Utils.CheckAppVersion(scopeServiceProvider);
+            await Utils.CheckAppVersionAsync(scopeServiceProvider);
+        }
+
+        public async Task PushApiResultJob()
+        {
+            using IServiceScope scope = this.serviceProvider.CreateScope();
+            IServiceProvider scopeServiceProvider = scope.ServiceProvider;
+            await Utils.PushApiResultAsync(scopeServiceProvider);
         }
     }
 }

@@ -2,6 +2,7 @@
   "JoinBotMessage": "歡迎使用 Microsoft Graph Bot",
   "Cron": "0 */4 * * *",
   "CheckVerCron": "0 */12 * * *",
+  "PushResultCron": "0 0 * * *",
   "AdminPassword": "P@ssw0rd",
   "Telegram": {
     "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"
@@ -14,7 +15,7 @@
     "DataBase": "MicrosoftGraphBot"
   },
   "API": {
-    "NumberOfServiceCall": 0,
-    "NumberOfMethodCall": 0
+    "NumberOfServiceCall": 2,
+    "NumberOfMethodCall": 1
   }
 }

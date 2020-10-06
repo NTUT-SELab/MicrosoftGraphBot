@@ -9,6 +9,7 @@ namespace MicrosoftGraphAPIBot.Models
         {
             IsAdmin = false;
             this.AzureApps = new List<AzureApp>();
+            this.ApiResults = new List<ApiResult>();
         }
 
         [Key]
@@ -18,5 +19,6 @@ namespace MicrosoftGraphAPIBot.Models
         [Required]
         public bool IsAdmin { get; set; }
         public ICollection<AzureApp> AzureApps { get; set; }
+        public ICollection<ApiResult> ApiResults { get; set; }
     }
 }

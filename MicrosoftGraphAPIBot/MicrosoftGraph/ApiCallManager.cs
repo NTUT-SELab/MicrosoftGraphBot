@@ -35,12 +35,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             IEnumerable<Task<(long, string)>> callApiTasks = usersId.Select(userId => RunAsync(userId, true));
             IEnumerable<(long, string)> callApiResults = await Task.WhenAll(callApiTasks);
 
-            TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
             if (callApiResults.Any())
             {
-                IEnumerable<Task> sendMessagesTask = callApiResults.Select(items => telegramHandler.SendMessage(items.Item1, !string.IsNullOrEmpty(items.Item2) ? items.Item2 : "沒有任何可執行物件"));
-                Task task = Task.WhenAll(sendMessagesTask);
-                await task;
+                IEnumerable<ApiResult> apiResults = callApiResults.Select(item => new ApiResult { TelegramUserId = item.Item1, Result = !string.IsNullOrEmpty(item.Item2) ? item.Item2 : "沒有任何可執行物件" });
+                db.ApiResults.AddRange(apiResults);
+                await db.SaveChangesAsync();
             }
         }
 

@@ -1,14 +1,31 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+using MicrosoftGraphAPIBot.Models;
+using MicrosoftGraphAPIBot.Telegram;
+using Moq;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace MicrosoftGraphBotTests
 {
     [TestClass]
-    public class BorUtilsTests
+    public class BotUtilsTests
     {
+        private readonly ServiceCollection services;
+
+        public BotUtilsTests()
+        {
+            var telegramMock = new Mock<TelegramController>(null, null, null, null, null, null, null, null);
+            telegramMock.Setup(m => m.SendMessage(It.IsAny<long>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+            TelegramController telegramHandler = telegramMock.Object;
+
+            services = new ServiceCollection();
+            services.AddScoped(services => telegramHandler);
+            services.AddScoped(services => Utils.CreateMemoryDbContext());
+        }
+
         [TestMethod]
         public void TestCheckConfig()
         {
@@ -17,6 +34,7 @@ namespace MicrosoftGraphBotTests
                 { "JoinBotMessage", string.Empty },
                 { "Cron", string.Empty },
                 { "CheckVerCron", string.Empty },
+                { "PushResultCron", string.Empty },
                 { "AdminPassword", string.Empty },
                 { "Telegram:Token", string.Empty },
                 { "MSSQL:Host", string.Empty },
@@ -69,6 +87,34 @@ namespace MicrosoftGraphBotTests
                 .Build();
 
             Assert.IsFalse(MicrosoftGraphAPIBot.Utils.CheckConfig(configuration));
+        }
+
+        [TestMethod]
+        public async Task TestPushApiResultAsync()
+        {
+            await Utils.SetApiResultDbContextAsync();
+            BotDbContext db = Utils.CreateMemoryDbContext();
+
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            await MicrosoftGraphAPIBot.Utils.PushApiResultAsync(serviceProvider);
+            Assert.IsFalse(await db.ApiResults.AnyAsync());
+        }
+
+        [TestMethod]
+        public async Task TestPushNoApiResultAsync()
+        {
+            await Utils.SetDefaultValueDbContextAsync();
+
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            await MicrosoftGraphAPIBot.Utils.PushApiResultAsync(serviceProvider);
+        }
+
+        [TestCleanup]
+        public async Task Cleanup()
+        {
+            await Utils.DeleteDBAsync();
         }
     }
 }

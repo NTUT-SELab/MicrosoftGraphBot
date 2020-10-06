@@ -37,9 +37,9 @@ namespace MicrosoftGraphAPIBot
         /// </summary>
         /// <param name="serviceProvider"></param>
         /// <returns></returns>
-        public static async Task CheckAppVersion(IServiceProvider serviceProvider)
+        public static async Task CheckAppVersionAsync(IServiceProvider serviceProvider)
         {
-            bool needUpdate = await CheckNeedUpdate(serviceProvider);
+            bool needUpdate = await CheckNeedUpdateAsync(serviceProvider);
 
             if (needUpdate)
             {
@@ -53,11 +53,37 @@ namespace MicrosoftGraphAPIBot
         }
 
         /// <summary>
+        /// 推播呼叫 Api 的結果給使用者
+        /// </summary>
+        /// <param name="serviceProvider"></param>
+        /// <returns></returns>
+        public static async Task PushApiResultAsync(IServiceProvider serviceProvider)
+        {
+            BotDbContext db = serviceProvider.GetService(typeof(BotDbContext)) as BotDbContext;
+            IList<ApiResult> apiResults = await db.ApiResults.Include(result => result.TelegramUser).ToListAsync();
+            if (apiResults.Any())
+            {
+                IEnumerable<long> usersIds = apiResults.Select(item => item.TelegramUserId).Distinct();
+
+                TelegramController telegramHandler = serviceProvider.GetService(typeof(TelegramController)) as TelegramController;
+                IEnumerable<Task> sendMessageTasks = usersIds.Select(usersId => telegramHandler.SendMessage(usersId,
+                    string.Join('\n', apiResults.Where(item => item.TelegramUserId == usersId).OrderBy(item => item.Date).Select(item => $"時間: {item.Date}, 結果:\n{item.Result}"))));
+                db.ApiResults.RemoveRange(apiResults);
+
+                Task sendMessageTask = Task.WhenAll(sendMessageTasks);
+                Task dbTask = db.SaveChangesAsync();
+
+                await sendMessageTask;
+                await dbTask;
+            }
+        }
+
+        /// <summary>
         /// 檢查是否有新版本
         /// </summary>
         /// <param name="serviceProvider"></param>
         /// <returns></returns>
-        private static async Task<bool> CheckNeedUpdate(IServiceProvider serviceProvider)
+        private static async Task<bool> CheckNeedUpdateAsync(IServiceProvider serviceProvider)
         {
             ILogger logger = serviceProvider.GetService(typeof(ILogger<Program>)) as ILogger<Program>;
             
@@ -94,6 +120,7 @@ namespace MicrosoftGraphAPIBot
             "JoinBotMessage",
             "Cron",
             "CheckVerCron",
+            "PushResultCron",
             "AdminPassword",
             "Telegram:Token",
             "MSSQL:Host",

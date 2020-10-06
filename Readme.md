@@ -34,6 +34,8 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 {
   "JoinBotMessage": "歡迎使用 Microsoft Graph Bot",
   "Cron": "0 */4 * * *",
+  "CheckVerCron": "0 */12 * * *",
+  "PushResultCron": "0 0 * * *",
   "AdminPassword": "P@ssw0rd",
   "Telegram": {
     "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"
@@ -46,8 +48,8 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
     "DataBase": "MicrosoftGraphBot"
   },
   "API": {
-    "NumberOfServiceCall": 0,
-    "NumberOfMethodCall": 0
+    "NumberOfServiceCall": 2,
+    "NumberOfMethodCall": 1
   }
 }
 ```
@@ -57,6 +59,7 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 ||JoinBotMessage|使用者第一次與 Bot 建立聯繫時，Bot的問候語|
 ||Cron|Api 排程觸發的頻率，請參考 Crontab 格式|
 ||CheckVerCron|檢查 **Bot** 是否有新版本的頻率，請參考 Crontab 格式|
+||PushResultCron|推播使用者呼叫 **API** 結果的頻率，請參考 Crontab 格式|
 ||AdminPassword|管理者密碼，與 Bot 溝通後，輸入此密碼可取得管理者權限|
 |Telegram|Token|Telegram bot token，請與 [Telegram bot father](https://core.telegram.org/bots) 聊天建立 Telegram bot 並取得 Token|
 |MSSQL|Host|SQL server 主機位置 (備註:使用 Docker compose 在 MSSQL 項不需要做任何更改)|
@@ -100,13 +103,6 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
         root@docker_server:~/docker$ docker-compose up -d
         ```
 
-- 更新版本方法
-  ```
-  docker-compose down
-  docker-compose pull
-  docker-compose up -d
-  ```
-
 ### 其它
 1. 自行安裝 [SQL server](https://www.microsoft.com/zh-tw/sql-server/sql-server-downloads)
 1. 編輯 **appsettings.json** 內 MSSQL 配置項的配置
@@ -128,6 +124,17 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
       ```
       root@server:~/MicrosoftGraphAPIBot$ ./MicrosoftGraphAPIBot
       ```
+
+## 更新版本方法
+  1. 檢查 [appsettings.json(應用程式配置文件)](appsettings.json.example) 是否需要增加或刪除欄位
+  1. 更新程式
+  - Docker
+    ```
+    docker-compose down
+    docker-compose pull
+    docker-compose up -d
+    ```
+  - 其它: 至 [Github Release](https://github.com/NTUT-SELab/MicrosoftGraphBot/releases) 下載最新版本的程式
 
 ## 支援 API:
 

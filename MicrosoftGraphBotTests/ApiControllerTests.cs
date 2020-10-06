@@ -22,6 +22,10 @@ namespace MicrosoftGraphBotTests
             services = new ServiceCollection();
             services.AddLogging();
             services.AddScoped<GraphApi, OutlookApi>();
+            services.AddScoped<GraphApi, OneDriveApi>();
+            services.AddScoped<GraphApi, PermissionsApi>();
+            services.AddScoped<GraphApi, CalendarApi>();
+            services.AddScoped<GraphApi, PersonalContactsApi>();
             services.AddScoped<ApiController>();
         }
 
@@ -40,7 +44,7 @@ namespace MicrosoftGraphBotTests
             ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
-            Assert.AreEqual(3, results.Count());
+            Assert.AreEqual(15, results.Count());
         }
 
         [TestMethod]
@@ -62,7 +66,7 @@ namespace MicrosoftGraphBotTests
             ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
-            Assert.AreEqual(3, results.Count());
+            Assert.AreEqual(15, results.Count());
         }
 
         [TestMethod]
@@ -84,7 +88,7 @@ namespace MicrosoftGraphBotTests
             ApiController apiController = serviceProvider.GetRequiredService<ApiController>();
             IEnumerable<(string, string, bool)> results = await apiController.RunAsync(graphClient, "Test");
 
-            Assert.AreEqual(1, results.Count());
+            Assert.AreEqual(5, results.Count());
         }
     }
 }

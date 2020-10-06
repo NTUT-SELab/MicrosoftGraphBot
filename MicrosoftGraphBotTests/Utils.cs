@@ -92,6 +92,21 @@ namespace MicrosoftGraphBotTests
             await db.DisposeAsync();
         }
 
+        public static async Task SetApiResultDbContextAsync()
+        {
+            using BotDbContext db = CreateMemoryDbContext();
+
+            db.TelegramUsers.Add(new TelegramUser { Id = 123456789, UserName = "Test Bot" });
+            db.TelegramUsers.Add(new TelegramUser { Id = 987654321, UserName = "Test Bot" });
+
+            db.ApiResults.Add(new ApiResult { Result = "123", TelegramUserId = 123456789 });
+            db.ApiResults.Add(new ApiResult { Result = "123987456", TelegramUserId = 123456789 });
+            db.ApiResults.Add(new ApiResult { Result = "987654321", TelegramUserId = 987654321 });
+
+            await db.SaveChangesAsync();
+            await db.DisposeAsync();
+        }
+
         public static async Task DeleteDBAsync()
         {
             BotDbContext db = CreateMemoryDbContext();

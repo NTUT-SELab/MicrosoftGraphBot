@@ -360,7 +360,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task ReBindAuth(long userId)
+        public virtual async Task ReBindAuth(long userId)
         {
             var keyboardMarkup = await GetUserAuthsNameAsync(userId);
             string command = GetAsyncMethodCommand(MethodBase.GetCurrentMethod());
