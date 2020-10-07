@@ -70,7 +70,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[RegisterAppReplay] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -124,7 +124,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[DeleteAppCallback] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -239,7 +239,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch(Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[BindUserAuthCallback] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -281,7 +281,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[BindUserAuthReplay] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -334,7 +334,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[UnbindUserAuthCallback] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -410,7 +410,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[ReBindAuthCallback] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: callbackQuery.From.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");
@@ -448,7 +448,7 @@ namespace MicrosoftGraphAPIBot.Telegram
             catch (Exception ex)
             {
                 Guid errorId = Guid.NewGuid();
-                logger.LogError($"Error Id: {errorId}, Message: {ex.Message}");
+                logger.LogError($"[ReBindUserAuthReplay] Error Id: {errorId}, Message: {ex.Message}");
                 await botClient.SendTextMessageAsync(
                     chatId: message.Chat.Id,
                     text: $"發生錯誤, 錯誤 ID:{errorId}");

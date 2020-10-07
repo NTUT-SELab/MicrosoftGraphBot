@@ -107,6 +107,16 @@ namespace MicrosoftGraphAPIBot.Telegram
                 await db.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// 取得所有使用者 Id
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<(long, string)>> GetAllUserIdAsync()
+        {
+            var users = await db.TelegramUsers.AsQueryable().Select(user => new { user.Id, user.UserName }).ToArrayAsync();
+            return users.Select(user => (user.Id, user.UserName));
+        }
+
         #region Azure app
 
         /// <summary>

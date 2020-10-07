@@ -23,6 +23,7 @@ namespace MicrosoftGraphAPIBot.Telegram
         public const string RunApiTask = "/runApi";
         public const string RunAllApiTask = "/runAllApi";
         public const string PushApiResult = "/pushResults";
+        public const string SendAnn = "/sendAnn";
         public const string AddAdminPermission = "/addAdminPermission";
         public const string RemoveAdminPermission = "/removeAdminPermission";
     }
@@ -50,11 +51,12 @@ namespace MicrosoftGraphAPIBot.Telegram
             { TelegramCommand.RunApiTask, "手動執行 Api 任務" },
             { TelegramCommand.RunAllApiTask, "手動執行 Api 任務(所有使用者)" },
             { TelegramCommand.PushApiResult, "推播呼叫 Api 的結果給使用者" },
+            { TelegramCommand.SendAnn, "發送全體公告" },
             { TelegramCommand.AddAdminPermission, "新增管理員權限" },
             { TelegramCommand.RemoveAdminPermission, "移除管理員權限" },
         };
 
-        public static readonly string[] AdminCommands = new string[] { TelegramCommand.RunAllApiTask, TelegramCommand.PushApiResult };
+        public static readonly string[] AdminCommands = new string[] { TelegramCommand.RunAllApiTask, TelegramCommand.PushApiResult, TelegramCommand.SendAnn };
 
         /// <summary>
         /// Create a new TelegramCommandGenerator instance.

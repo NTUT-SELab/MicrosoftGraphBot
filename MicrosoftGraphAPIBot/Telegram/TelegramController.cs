@@ -66,6 +66,7 @@ namespace MicrosoftGraphAPIBot.Telegram
                 { TelegramCommand.RunApiTask, (RunApiTask, null, null) },
                 { TelegramCommand.RunAllApiTask, (RunAllApiTask, null, null) },
                 { TelegramCommand.PushApiResult, (RunPushApiResultTask, null, null) },
+                { TelegramCommand.SendAnn, (SendAnn, SendAnnReplay, null) },
                 { TelegramCommand.AddAdminPermission, (AddAdminPermission, AddAdminPermissionReplay, null) },
                 { TelegramCommand.RemoveAdminPermission, (RemoveAdminPermission, null, null) }
             };
@@ -105,7 +106,7 @@ namespace MicrosoftGraphAPIBot.Telegram
 
             string command = message.Text.Split(' ').First();
 
-            if (TelegramCommandGenerator.AdminCommands.Contains(command) && !(await telegramHandler.CheckIsAdminAsync(message.Chat.Id)))
+            if ((TelegramCommandGenerator.AdminCommands.Contains(command) || TelegramCommand.Admin == command) && !(await telegramHandler.CheckIsAdminAsync(message.Chat.Id)))
             {
                 await Defult(message).ConfigureAwait(false);
                 return;
@@ -211,11 +212,22 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task RunApiTask(Message message)
         {
-            var result = await apiCallManager.RunAsync(message.Chat.Id);
+            try
+            {
+                var result = await apiCallManager.RunAsync(message.Chat.Id);
 
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: $"執行結果: \n {result.Item2}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"執行結果: \n {result.Item2}");
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"[RunApiTask] Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
         }
 
         /// <summary>
@@ -244,16 +256,27 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task AddAdminPermissionReplay(Message message)
         {
-            bool result = await telegramHandler.AddAdminPermissionAsync(message.Chat.Id, message.Chat.Username, message.Text);
+            try
+            {
+                bool result = await telegramHandler.AddAdminPermissionAsync(message.Chat.Id, message.Chat.Username, message.Text);
 
-            string resultMessage = "升級管理者權限: 失敗";
+                string resultMessage = "升級管理者權限: 失敗";
 
-            if (result)
-                resultMessage = "升級管理者權限: 成功";
+                if (result)
+                    resultMessage = "升級管理者權限: 成功";
 
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: resultMessage);
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: resultMessage);
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"[AddAdminPermissionReplay] Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
         }
 
         /// <summary>
@@ -263,11 +286,22 @@ namespace MicrosoftGraphAPIBot.Telegram
         /// <returns></returns>
         private async Task RemoveAdminPermission(Message message)
         {
-            await telegramHandler.RemoveAdminPermissionAsync(message.Chat.Id, message.Chat.Username);
+            try
+            {
+                await telegramHandler.RemoveAdminPermissionAsync(message.Chat.Id, message.Chat.Username);
 
-            await botClient.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "成功移除管理者權限");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: "成功移除管理者權限");
+            }
+            catch (Exception ex)
+            {
+                Guid errorId = Guid.NewGuid();
+                logger.LogError($"[AddAdminPermissionReplay] Error Id: {errorId}, Message: {ex.Message}");
+                await botClient.SendTextMessageAsync(
+                    chatId: message.Chat.Id,
+                    text: $"發生錯誤, 錯誤 ID:{errorId}");
+            }
         }
 
         /// <summary>
