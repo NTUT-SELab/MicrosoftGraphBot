@@ -6,6 +6,8 @@ services:
     volumes:
       - ./mssql/data:/var/opt/mssql/data
       - ./mssql/log:/var/opt/mssql/log
+#同步容器時區 (限Linux容器)
+#      - /etc/localtime:/etc/localtime:ro
     environment:
       ACCEPT_EULA: Y
       SA_PASSWORD: P@ssw0rd
@@ -17,6 +19,8 @@ services:
     volumes:
       - ./bot/appsettings.json:/app/appsettings.json
       - ./bot/Logs:/app/Logs
+#同步容器時區 (限Linux容器)
+#      - /etc/localtime:/etc/localtime:ro
     restart: always
     container_name: MGBot
     depends_on:

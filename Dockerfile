@@ -12,7 +12,8 @@ WORKDIR "/src/MicrosoftGraphAPIBot"
 RUN dotnet build "MicrosoftGraphAPIBot.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "MicrosoftGraphAPIBot.csproj" -c Release -o /app/publish
+ARG RELEASE_VERSION
+RUN dotnet publish "MicrosoftGraphAPIBot.csproj" -c Release -o /app/publish /p:Version=$RELEASE_VERSION
 
 FROM base AS final
 WORKDIR /app
