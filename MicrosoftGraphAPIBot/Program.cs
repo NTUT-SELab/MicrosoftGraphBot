@@ -42,7 +42,7 @@ namespace MicrosoftGraphAPIBot
                     if (!Utils.CheckConfig(hostContext.Configuration))
                         throw new BotException("Configuration file check failed.");
                     string DBConnection = Utils.GetDBConnection(hostContext.Configuration);
-                    services.AddDbContext<BotDbContext>(options =>
+                    services.AddDbContextPool<BotDbContext>(options =>
                     {
                         options.UseSqlServer(DBConnection);
                     });

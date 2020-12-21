@@ -257,7 +257,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         private static async Task<Permission> UpdateShareLinkAsync(IGraphServiceClient graphClient, string itemId, string linkId)
         {
-            var permission = new Permission { Roles = new List<String>{ "write" }};
+            var permission = new Permission { Roles = new List<String>{ "write" }, ExpirationDateTime = DateTimeOffset.MaxValue};
 
             Permission item = await graphClient.Me.Drive.Items[itemId].Permissions[linkId]
                                                 .Request()
