@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,7 +36,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 Message message = await CreateMessageAsync(graphClient);
                 Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-                Trace.Assert(message.Id == message1.Id);
+                Utils.Assert(message.Id == message1.Id);
 
                 await DeleteMessageAsync(graphClient, message.Id);
                 return true;
@@ -62,12 +61,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 Message message = await CreateMessageAsync(graphClient);
                 Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-                Trace.Assert(message.Id == message1.Id);
+                Utils.Assert(message.Id == message1.Id);
 
                 Guid id = await UpdateMessageAsync(graphClient, message.Id);
                 message1 = await GetMessageAsync(graphClient, message.Id);
 
-                Trace.Assert(message1.Subject == id.ToString());
+                Utils.Assert(message1.Subject == id.ToString());
 
                 await DeleteMessageAsync(graphClient, message.Id);
                 return true;
@@ -92,13 +91,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 Message message = await CreateMessageAsync(graphClient);
                 Message message1 = await GetMessageAsync(graphClient, message.Id);
 
-                Trace.Assert(message.Id == message1.Id);
+                Utils.Assert(message.Id == message1.Id);
 
                 await SendMessageAsync(graphClient, message.Id);
 
                 IList<Message> messages = await ListMessageAsync(graphClient);
                 IEnumerable<Message> messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
-                Trace.Assert(messages1.Any());
+                Utils.Assert(messages1.Any());
 
                 foreach (Message message2 in messages1)
                     await DeleteMessageAsync(graphClient, message2.Id);

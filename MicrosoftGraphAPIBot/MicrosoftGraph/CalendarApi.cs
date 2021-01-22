@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,7 +36,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
                 IUserCalendarsCollectionPage calendars = await ListCalendarAsync(graphClient);
                 bool isCreate = calendars.CurrentPage.Any(item => item.Id == calendar.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 await DeleteCalendarAsync(graphClient, calendar.Id);
                 return true;
@@ -63,12 +62,12 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
                 IUserCalendarsCollectionPage calendars = await ListCalendarAsync(graphClient);
                 bool isCreate = calendars.CurrentPage.Any(item => item.Id == calendar.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Calendar newCalendar = await UpdateCalendarAsync(graphClient, calendar.Id);
                 calendars = await ListCalendarAsync(graphClient);
                 bool isUpdate = calendars.CurrentPage.Any(item => item.Id == calendar.Id && item.Name == newCalendar.Name);
-                Trace.Assert(isUpdate);
+                Utils.Assert(isUpdate);
 
                 await DeleteCalendarAsync(graphClient, calendar.Id);
                 return true;

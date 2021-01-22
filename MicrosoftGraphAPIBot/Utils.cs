@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -113,6 +114,17 @@ namespace MicrosoftGraphAPIBot
             }
         }
 
+        /// <summary>
+        /// 條件不符投擲例外訊息
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="lineNumber"></param>
+        /// <param name="caller"></param>
+        public static void Assert(bool condition, [CallerLineNumber] int lineNumber = 0, [CallerMemberName] string caller = null)
+        {
+            if (!condition)
+                throw new BotException($"Caller: {caller}, Line number: {lineNumber}, Assertion Failed");
+        }
 #region Config
 
         private static readonly string[] configKeys = new string[]

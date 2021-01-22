@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,7 +36,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
@@ -63,13 +62,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Name == folderItem.Name);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 DriveItem newFolderItem = await FileApi.UpdateDriveItemAsync(graphClient, folderItem.Id);
                 items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isUpdate = items.CurrentPage.Any(driveItem => driveItem.Name == newFolderItem.Name);
-                Trace.Assert(isUpdate);
+                Utils.Assert(isUpdate);
 
                 await FileApi.DeleteDriveItemAsync(graphClient, folderItem.Id);
                 return true;
@@ -96,13 +95,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 folderItem[1] = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
                 bool isUpdate = items.CurrentPage.Count(driveItem => folderItem.Select(c => c.Id).Contains(driveItem.Id)) == 2;
-                Trace.Assert(isUpdate);
+                Utils.Assert(isUpdate);
 
                 await FileApi.MoveDriveItemAsync(graphClient, folderItem[0].Id, folderItem[1].Id);
 
                 IDriveItemChildrenCollectionPage folder1Items = await FileApi.GetDriveItemAsync(graphClient, folderItem[0].Id);
                 bool isMove = folder1Items.CurrentPage.Any(driveItem => driveItem.Id == folderItem[1].Id);
-                Trace.Assert(isMove);
+                Utils.Assert(isMove);
 
                 await FileApi.DeleteDriveItemAsync(graphClient, folderItem[0].Id);
                 return true;

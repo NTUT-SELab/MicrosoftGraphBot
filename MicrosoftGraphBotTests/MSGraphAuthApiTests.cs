@@ -11,7 +11,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class MSGraphAuthApiTests
     {
-        private AuthCodeController authCodeController;
+        private readonly AuthCodeController authCodeController;
 
         public MSGraphAuthApiTests()
         {

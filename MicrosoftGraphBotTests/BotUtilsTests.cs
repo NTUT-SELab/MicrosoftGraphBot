@@ -2,9 +2,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MicrosoftGraphAPIBot;
 using MicrosoftGraphAPIBot.Models;
 using MicrosoftGraphAPIBot.Telegram;
 using Moq;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -109,6 +111,19 @@ namespace MicrosoftGraphBotTests
             ServiceProvider serviceProvider = services.BuildServiceProvider();
 
             await MicrosoftGraphAPIBot.Utils.PushApiResultAsync(serviceProvider);
+        }
+
+        [TestMethod]
+        public void TestAssertTrue()
+        {
+            MicrosoftGraphAPIBot.Utils.Assert(true);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(BotException))]
+        public void TestAssertFalse()
+        {
+            MicrosoftGraphAPIBot.Utils.Assert(false);
         }
 
         [TestCleanup]
