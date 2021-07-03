@@ -29,6 +29,7 @@ namespace MicrosoftGraphAPIBot.Services
         {
             try
             {
+                Utils.DeleteDelayTime = configuration.GetValue<int>("DeleteDelayTime");
                 StartReceiving();
                 isStart = true;
                 logger.LogInformation("Api call service is starting.");

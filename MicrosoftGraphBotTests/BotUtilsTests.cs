@@ -38,6 +38,7 @@ namespace MicrosoftGraphBotTests
                 { "CheckVerCron", string.Empty },
                 { "PushResultCron", string.Empty },
                 { "AdminPassword", string.Empty },
+                { "DeleteDelayTime", string.Empty },
                 { "Telegram:Token", string.Empty },
                 { "MSSQL:Host", string.Empty },
                 { "MSSQL:Port", string.Empty },

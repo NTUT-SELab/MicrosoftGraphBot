@@ -206,6 +206,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         private static async Task DeleteMessageAsync(IGraphServiceClient graphClient, string mailId)
         {
+            await Task.Delay(Utils.DeleteDelayTime);
             await graphClient.Me.Messages[mailId].Request().DeleteAsync();
         }
 

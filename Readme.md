@@ -37,6 +37,7 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
   "CheckVerCron": "0 */12 * * *",
   "PushResultCron": "0 0 * * *",
   "AdminPassword": "P@ssw0rd",
+  "DeleteDelayTime": 30000,
   "Telegram": {
     "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"
   },
@@ -61,6 +62,7 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 ||CheckVerCron|檢查 **Bot** 是否有新版本的頻率，請參考 Crontab 格式|
 ||PushResultCron|推播使用者呼叫 **API** 結果的頻率，請參考 Crontab 格式|
 ||AdminPassword|管理者密碼，與 Bot 溝通後，輸入此密碼可取得管理者權限|
+||DeleteDelayTime|任務執行完畢，刪除任務產生的垃圾資料前等待的時間|
 |Telegram|Token|Telegram bot token，請與 [Telegram bot father](https://core.telegram.org/bots) 聊天建立 Telegram bot 並取得 Token|
 |MSSQL|Host|SQL server 主機位置 (備註:使用 Docker compose 在 MSSQL 項不需要做任何更改)|
 ||Port|SQL server port|
@@ -160,12 +162,6 @@ Microsoft Graph API 是一個 RESTful 的 Web API，可讓您存取 Microsoft Cl
 - Get sharing permission for a file or folder
 - Update sharing permission
 - Delete a sharing permission from a file or folder
-
-### [Calendar API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/12)
-- List calendars
-- Create Calendar
-- Update calendar
-- Delete calendar
 
 ### [Personal contacts API](https://github.com/NTUT-SELab/MicrosoftGraphBot/issues/10)
 - Get contact

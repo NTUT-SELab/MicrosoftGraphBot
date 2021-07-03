@@ -115,6 +115,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public static async Task DeleteContact(IGraphServiceClient graphClient, string Id)
         {
+            await Task.Delay(Utils.DeleteDelayTime);
             await graphClient.Me.Contacts[Id]
                 .Request()
                 .DeleteAsync();

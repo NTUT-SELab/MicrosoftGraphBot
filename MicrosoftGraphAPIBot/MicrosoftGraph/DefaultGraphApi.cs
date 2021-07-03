@@ -20,7 +20,6 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             "offline_access user.read",
             OutlookApi.Scope,
             OneDriveApi.Scope,
-            CalendarApi.Scope,
             PersonalContactsApi.Scope
         };
         public readonly static string Scope = string.Join(' ', scopes);

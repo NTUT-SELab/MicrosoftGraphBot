@@ -52,7 +52,6 @@ namespace MicrosoftGraphAPIBot
                     services.AddScoped<GraphApi, OutlookApi>();
                     services.AddScoped<GraphApi, OneDriveApi>();
                     services.AddScoped<GraphApi, PermissionsApi>();
-                    services.AddScoped<GraphApi, CalendarApi>();
                     services.AddScoped<GraphApi, PersonalContactsApi>();
                     services.AddTransient<ApiController>();
                     services.AddTransient<ApiCallManager>();

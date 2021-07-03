@@ -18,6 +18,8 @@ namespace MicrosoftGraphAPIBot
 {
     public static class Utils
     {
+        public static int DeleteDelayTime { get; set; } = 30000;
+
         /// <summary>
         /// 將 appsettings.json 中的 SQL 參數合併成連接字串
         /// </summary>
@@ -134,6 +136,7 @@ namespace MicrosoftGraphAPIBot
             "CheckVerCron",
             "PushResultCron",
             "AdminPassword",
+            "DeleteDelayTime",
             "Telegram:Token",
             "MSSQL:Host",
             "MSSQL:Port",
