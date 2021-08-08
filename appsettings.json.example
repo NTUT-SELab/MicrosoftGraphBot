@@ -4,6 +4,7 @@
   "CheckVerCron": "0 */12 * * *",
   "PushResultCron": "0 0 * * *",
   "AdminPassword": "P@ssw0rd",
+  "DeleteDelayTime": 30000,
   "Telegram": {
     "Token": "1119104861:AAH4D1-ZdtwvFPeQARLJAdhBYPA1xK7px08"
   },

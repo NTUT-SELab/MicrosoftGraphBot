@@ -69,6 +69,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public static async Task DeleteDriveItemAsync(GraphServiceClient graphClient, string itemId)
         {
+            await Task.Delay(Utils.DeleteDelayTime);
             await graphClient.Me.Drive.Items[itemId]
                 .Request()
                 .DeleteAsync();

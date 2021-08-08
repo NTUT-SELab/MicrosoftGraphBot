@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -37,13 +36,13 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Permission link = await CreateShareLinkAsync(graphClient, item.Id);
                 var links = await ListShareLinkAsync(graphClient, item.Id);
 
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 return true;
             }
@@ -81,16 +80,16 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Permission link = await CreateShareLinkAsync(graphClient, item.Id);
                 var links = await ListShareLinkAsync(graphClient, item.Id);
 
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 SharedDriveItem sharedItem = await AccessingSharedLinkAsync(graphClient, link.Link.WebUrl);
-                Trace.Assert(sharedItem.Name == item.Name);
+                Utils.Assert(sharedItem.Name == item.Name);
 
                 return true;
             }
@@ -128,11 +127,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Permission link = await CreateShareLinkAsync(graphClient, item.Id);
                 Permission linkInfo = await GetShareLinkAsync(graphClient, item.Id, link.Id);
-                Trace.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
+                Utils.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
 
                 return true;
             }
@@ -170,17 +169,17 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Permission link = await CreateShareLinkAsync(graphClient, item.Id);
                 var links = await ListShareLinkAsync(graphClient, item.Id);
 
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 link = await UpdateShareLinkAsync(graphClient, item.Id, link.Id);
                 Permission linkInfo = await GetShareLinkAsync(graphClient, item.Id, link.Id);
-                Trace.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
+                Utils.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
 
                 return true;
             }
@@ -218,19 +217,19 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 Permission link = await CreateShareLinkAsync(graphClient, item.Id);
                 var links = await ListShareLinkAsync(graphClient, item.Id);
 
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
-                Trace.Assert(isCreate);
+                Utils.Assert(isCreate);
 
                 await DeleteShareLinkAsync(graphClient, item.Id, link.Id);
                 links = await ListShareLinkAsync(graphClient, item.Id);
 
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
-                Trace.Assert(!isCreate);
+                Utils.Assert(!isCreate);
 
                 return true;
             }

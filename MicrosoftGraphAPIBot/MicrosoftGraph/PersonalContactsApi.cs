@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace MicrosoftGraphAPIBot.MicrosoftGraph
@@ -35,7 +34,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 contact = await CreateContact(graphClient);
                 Contact contact1 = await GetContact(graphClient, contact.Id);
-                Trace.Assert(contact.DisplayName == contact1.DisplayName);
+                Utils.Assert(contact.DisplayName == contact1.DisplayName);
 
                 return true;
             }
@@ -71,11 +70,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
             {
                 contact = await CreateContact(graphClient);
                 Contact contact1 = await GetContact(graphClient, contact.Id);
-                Trace.Assert(contact.DisplayName == contact1.DisplayName);
+                Utils.Assert(contact.DisplayName == contact1.DisplayName);
 
                 Contact updateContact = await UpdateContact(graphClient, contact.Id);
                 contact1 = await GetContact(graphClient, contact.Id);
-                Trace.Assert(updateContact.DisplayName == contact1.DisplayName);
+                Utils.Assert(updateContact.DisplayName == contact1.DisplayName);
 
                 return true;
             }
@@ -140,6 +139,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public static async Task DeleteContact(GraphServiceClient graphClient, string Id)
         {
+            await Task.Delay(Utils.DeleteDelayTime);
             await graphClient.Me.Contacts[Id]
                 .Request()
                 .DeleteAsync();

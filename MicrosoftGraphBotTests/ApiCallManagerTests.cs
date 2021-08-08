@@ -30,7 +30,6 @@ namespace MicrosoftGraphBotTests
             services.AddScoped<GraphApi, OutlookApi>();
             services.AddScoped<GraphApi, OneDriveApi>();
             services.AddScoped<GraphApi, PermissionsApi>();
-            services.AddScoped<GraphApi, CalendarApi>();
             services.AddScoped<GraphApi, PersonalContactsApi>();
             services.AddScoped<ApiController>();
             services.AddScoped<ApiCallManager>(); 
