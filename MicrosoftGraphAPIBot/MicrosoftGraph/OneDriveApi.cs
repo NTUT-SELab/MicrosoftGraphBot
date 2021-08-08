@@ -15,7 +15,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         public const string Scope = "Files.Read Files.ReadWrite Files.Read.All Files.ReadWrite.All";
 
-        public OneDriveApi(IGraphServiceClient graphClient) : base(graphClient)
+        public OneDriveApi(GraphServiceClient graphClient) : base(graphClient)
         {
         }
 
@@ -31,21 +31,33 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallCreateFolderAsync()
         {
+            DriveItem item = null;
             try
             {
-                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                item = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
                 Trace.Assert(isCreate);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -57,9 +69,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallUpdateDriveItemAsync()
         {
+            DriveItem folderItem = null;
             try
             {
-                DriveItem folderItem = await FileApi.CreateFolderAsync(graphClient);
+                folderItem = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Name == folderItem.Name);
@@ -71,13 +84,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 bool isUpdate = items.CurrentPage.Any(driveItem => driveItem.Name == newFolderItem.Name);
                 Trace.Assert(isUpdate);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, folderItem.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (folderItem != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, folderItem.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -89,9 +113,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallMoveDriveItemAsync()
         {
+            DriveItem[] folderItem = null;
             try
             {
-                DriveItem[] folderItem = new DriveItem[2];
+                folderItem = new DriveItem[2];
                 folderItem[0] = await FileApi.CreateFolderAsync(graphClient);
                 folderItem[1] = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
@@ -104,13 +129,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 bool isMove = folder1Items.CurrentPage.Any(driveItem => driveItem.Id == folderItem[1].Id);
                 Trace.Assert(isMove);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, folderItem[0].Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (folderItem != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, folderItem[0].Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
     }

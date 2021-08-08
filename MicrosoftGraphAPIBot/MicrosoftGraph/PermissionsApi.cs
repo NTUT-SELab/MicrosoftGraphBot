@@ -14,7 +14,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     /// </summary>
     public class PermissionsApi : GraphApi
     {
-        public PermissionsApi(IGraphServiceClient graphClient) : base(graphClient)
+        public PermissionsApi(GraphServiceClient graphClient) : base(graphClient)
         {
         }
 
@@ -30,9 +30,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallCreateShareLinkAsync()
         {
+            DriveItem item = null;
             try
             {
-                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                item = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
@@ -44,13 +45,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
                 Trace.Assert(isCreate);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch(Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -62,9 +74,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallAccessingShareLinkAsync()
         {
+            DriveItem item = null;
             try
             {
-                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                item = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
@@ -79,13 +92,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 SharedDriveItem sharedItem = await AccessingSharedLinkAsync(graphClient, link.Link.WebUrl);
                 Trace.Assert(sharedItem.Name == item.Name);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -97,18 +121,38 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallGetSharingLinkAsync()
         {
-            DriveItem item = await FileApi.CreateFolderAsync(graphClient);
-            IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
+            DriveItem item = null;
+            try
+            {
+                item = await FileApi.CreateFolderAsync(graphClient);
+                IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
-            bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
-            Trace.Assert(isCreate);
+                bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
+                Trace.Assert(isCreate);
 
-            Permission link = await CreateShareLinkAsync(graphClient, item.Id);
-            Permission linkInfo = await GetShareLinkAsync(graphClient, item.Id, link.Id);
-            Trace.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
+                Permission link = await CreateShareLinkAsync(graphClient, item.Id);
+                Permission linkInfo = await GetShareLinkAsync(graphClient, item.Id, link.Id);
+                Trace.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
 
-            await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex.Message);
+                return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
+            }
         }
 
         /// <summary>
@@ -119,9 +163,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallUpdateSharingLinkAsync()
         {
+            DriveItem item = null;
             try
             {
-                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                item = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
@@ -137,13 +182,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 Permission linkInfo = await GetShareLinkAsync(graphClient, item.Id, link.Id);
                 Trace.Assert(string.Join(',', link.Roles) == string.Join(',', linkInfo.Roles));
 
-                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -155,9 +211,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallDeleteSharingLinkAsync()
         {
+            DriveItem item = null;
             try
             {
-                DriveItem item = await FileApi.CreateFolderAsync(graphClient);
+                item = await FileApi.CreateFolderAsync(graphClient);
                 IDriveItemChildrenCollectionPage items = await FileApi.ListDriveItemAsync(graphClient);
 
                 bool isCreate = items.CurrentPage.Any(driveItem => driveItem.Id == item.Id);
@@ -175,13 +232,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 isCreate = links.CurrentPage.Any(linkItem => linkItem.Id == link.Id);
                 Trace.Assert(!isCreate);
 
-                await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (item != null)
+                    try
+                    {
+                        await FileApi.DeleteDriveItemAsync(graphClient, item.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -191,7 +259,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        private static async Task<IDriveItemPermissionsCollectionPage> ListShareLinkAsync(IGraphServiceClient graphClient, string itemId)
+        private static async Task<IDriveItemPermissionsCollectionPage> ListShareLinkAsync(GraphServiceClient graphClient, string itemId)
         {
             return await graphClient.Me.Drive.Items[itemId].Permissions
                                     .Request()
@@ -204,7 +272,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        private static async Task<Permission> CreateShareLinkAsync(IGraphServiceClient graphClient, string itemId)
+        private static async Task<Permission> CreateShareLinkAsync(GraphServiceClient graphClient, string itemId)
         {
             string type = "view";
             var scope = "anonymous";
@@ -224,7 +292,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="sharingUrl"></param>
         /// <returns></returns>
-        private static async Task<SharedDriveItem> AccessingSharedLinkAsync(IGraphServiceClient graphClient, string sharingUrl)
+        private static async Task<SharedDriveItem> AccessingSharedLinkAsync(GraphServiceClient graphClient, string sharingUrl)
         {
             string base64Value = System.Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sharingUrl));
             string encodedUrl = "u!" + base64Value.TrimEnd('=').Replace('/', '_').Replace('+', '-');
@@ -241,7 +309,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="itemId"></param>
         /// <param name="linkId"></param>
         /// <returns></returns>
-        private static async Task<Permission> GetShareLinkAsync(IGraphServiceClient graphClient, string itemId, string linkId)
+        private static async Task<Permission> GetShareLinkAsync(GraphServiceClient graphClient, string itemId, string linkId)
         {
             return await graphClient.Me.Drive.Items[itemId].Permissions[linkId]
                                     .Request()
@@ -255,7 +323,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="itemId"></param>
         /// <param name="linkId"></param>
         /// <returns></returns>
-        private static async Task<Permission> UpdateShareLinkAsync(IGraphServiceClient graphClient, string itemId, string linkId)
+        private static async Task<Permission> UpdateShareLinkAsync(GraphServiceClient graphClient, string itemId, string linkId)
         {
             var permission = new Permission { Roles = new List<String>{ "write" }, ExpirationDateTime = DateTimeOffset.MaxValue};
 
@@ -274,7 +342,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="itemId"></param>
         /// <param name="linkId"></param>
         /// <returns></returns>
-        private static async Task DeleteShareLinkAsync(IGraphServiceClient graphClient, string itemId, string linkId)
+        private static async Task DeleteShareLinkAsync(GraphServiceClient graphClient, string itemId, string linkId)
         {
             await graphClient.Me.Drive.Items[itemId].Permissions[linkId]
                             .Request()

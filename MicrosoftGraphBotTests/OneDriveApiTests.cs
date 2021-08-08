@@ -8,7 +8,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class OneDriveApiTests
     {
-        private readonly IGraphServiceClient graphClient;
+        private readonly GraphServiceClient graphClient;
 
         public OneDriveApiTests()
         {

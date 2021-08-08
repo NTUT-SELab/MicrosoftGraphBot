@@ -12,7 +12,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<IDriveItemChildrenCollectionPage> ListDriveItemAsync(IGraphServiceClient graphClient)
+        public static async Task<IDriveItemChildrenCollectionPage> ListDriveItemAsync(GraphServiceClient graphClient)
         {
             IDriveItemChildrenCollectionPage children = await graphClient.Me.Drive.Root.Children
                 .Request()
@@ -27,7 +27,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        public static async Task<IDriveItemChildrenCollectionPage> GetDriveItemAsync(IGraphServiceClient graphClient, string itemId)
+        public static async Task<IDriveItemChildrenCollectionPage> GetDriveItemAsync(GraphServiceClient graphClient, string itemId)
         {
             return await graphClient.Me.Drive.Items[itemId].Children
                         .Request()
@@ -39,7 +39,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<DriveItem> CreateFolderAsync(IGraphServiceClient graphClient)
+        public static async Task<DriveItem> CreateFolderAsync(GraphServiceClient graphClient)
         {
             var driveItem = new DriveItem
             {
@@ -67,7 +67,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        public static async Task DeleteDriveItemAsync(IGraphServiceClient graphClient, string itemId)
+        public static async Task DeleteDriveItemAsync(GraphServiceClient graphClient, string itemId)
         {
             await graphClient.Me.Drive.Items[itemId]
                 .Request()
@@ -80,7 +80,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        public static async Task<DriveItem> UpdateDriveItemAsync(IGraphServiceClient graphClient, string itemId)
+        public static async Task<DriveItem> UpdateDriveItemAsync(GraphServiceClient graphClient, string itemId)
         {
             var driveItem = new DriveItem
             {
@@ -102,7 +102,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="parentItemId"></param>
         /// <param name="itemId"></param>
         /// <returns></returns>
-        public static async Task MoveDriveItemAsync(IGraphServiceClient graphClient, string parentItemId, string itemId)
+        public static async Task MoveDriveItemAsync(GraphServiceClient graphClient, string parentItemId, string itemId)
         {
             var driveItem = new DriveItem
             {

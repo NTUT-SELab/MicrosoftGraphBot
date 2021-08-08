@@ -8,7 +8,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class PersonalContactsApiTests
     {
-        private readonly IGraphServiceClient graphClient;
+        private readonly GraphServiceClient graphClient;
 
         public PersonalContactsApiTests()
         {

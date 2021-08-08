@@ -38,7 +38,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="token"> access token </param>
         /// <returns> The object of GraphServiceClient. </returns>
-        public static IGraphServiceClient GetGraphServiceClient(string token)
+        public static GraphServiceClient GetGraphServiceClient(string token)
         {
             IAuthenticationProvider authProvider = new DelegateAuthenticationProvider(async (requestMessage) =>
             {
@@ -46,7 +46,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 _ = await Task.FromResult<object>(null);
             });
 
-            IGraphServiceClient graphClient = new GraphServiceClient(authProvider);
+            GraphServiceClient graphClient = new GraphServiceClient(authProvider);
             return graphClient;
         }
 
@@ -178,7 +178,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             try
             {
-                IGraphServiceClient graphClient = GetGraphServiceClient(token);
+                GraphServiceClient graphClient = GetGraphServiceClient(token);
 
                 return await GetUserInfoAsync(graphClient);
             }
@@ -193,7 +193,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"> The object of GraphServiceClient. </param>
         /// <returns> User object </returns>
-        public static async Task<User> GetUserInfoAsync(IGraphServiceClient graphClient)
+        public static async Task<User> GetUserInfoAsync(GraphServiceClient graphClient)
         {
             User user = await graphClient.Me
                 .Request()

@@ -16,7 +16,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         public const string Scope = "Mail.Read Mail.ReadWrite Mail.Send";
 
-        public OutlookApi(IGraphServiceClient graphClient) : base(graphClient)
+        public OutlookApi(GraphServiceClient graphClient) : base(graphClient)
         {
         }
 
@@ -32,20 +32,32 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallCreateMessageAsync()
         {
+            Message message = null;
             try
             {
-                Message message = await CreateMessageAsync(graphClient);
+                message = await CreateMessageAsync(graphClient);
                 Message message1 = await GetMessageAsync(graphClient, message.Id);
 
                 Trace.Assert(message.Id == message1.Id);
 
-                await DeleteMessageAsync(graphClient, message.Id);
                 return true;
             }
             catch(Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (message != null)
+                    try
+                    {
+                        await DeleteMessageAsync(graphClient, message.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -57,9 +69,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallUpdateMessageAsync()
         {
+            Message message = null;
             try
             {
-                Message message = await CreateMessageAsync(graphClient);
+                message = await CreateMessageAsync(graphClient);
                 Message message1 = await GetMessageAsync(graphClient, message.Id);
 
                 Trace.Assert(message.Id == message1.Id);
@@ -69,13 +82,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
 
                 Trace.Assert(message1.Subject == id.ToString());
 
-                await DeleteMessageAsync(graphClient, message.Id);
                 return true;
             }
             catch(Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (message != null)
+                    try
+                    {
+                        await DeleteMessageAsync(graphClient, message.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -87,6 +111,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallSendMessageAsync()
         {
+            IEnumerable<Message> messages1 = null;
             try
             {
                 Message message = await CreateMessageAsync(graphClient);
@@ -97,17 +122,28 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 await SendMessageAsync(graphClient, message.Id);
 
                 IList<Message> messages = await ListMessageAsync(graphClient);
-                IEnumerable<Message> messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
+                messages1 = messages.Where(item => item.Subject.Contains(message.Subject));
                 Trace.Assert(messages1.Any());
 
-                foreach (Message message2 in messages1)
-                    await DeleteMessageAsync(graphClient, message2.Id);
                 return true;
             }
             catch(Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (messages1 != null)
+                    try
+                    {
+                        foreach (Message message2 in messages1)
+                            await DeleteMessageAsync(graphClient, message2.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -116,7 +152,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"></param>
         /// <returns></returns>
-        private static async Task<IUserMessagesCollectionPage> ListMessageAsync(IGraphServiceClient graphClient)
+        private static async Task<IUserMessagesCollectionPage> ListMessageAsync(GraphServiceClient graphClient)
         {
             IUserMessagesCollectionPage messages = await graphClient.Me.Messages
                 .Request()
@@ -131,7 +167,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"></param>
         /// <returns></returns>
-        private static async Task<Message> CreateMessageAsync(IGraphServiceClient graphClient)
+        private static async Task<Message> CreateMessageAsync(GraphServiceClient graphClient)
         {
             Guid Id = Guid.NewGuid();
             var message = new Message
@@ -168,7 +204,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="mailId"></param>
         /// <returns></returns>
-        private static async Task<Guid> UpdateMessageAsync(IGraphServiceClient graphClient, string mailId)
+        private static async Task<Guid> UpdateMessageAsync(GraphServiceClient graphClient, string mailId)
         {
             Guid Id = Guid.NewGuid();
             var message = new Message
@@ -193,7 +229,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="mailId"></param>
         /// <returns></returns>
-        private static async Task SendMessageAsync(IGraphServiceClient graphClient, string mailId)
+        private static async Task SendMessageAsync(GraphServiceClient graphClient, string mailId)
         {
             await graphClient.Me.Messages[mailId].Send().Request().PostAsync();
             await Task.Delay(5000);
@@ -205,7 +241,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="mailId"></param>
         /// <returns></returns>
-        private static async Task DeleteMessageAsync(IGraphServiceClient graphClient, string mailId)
+        private static async Task DeleteMessageAsync(GraphServiceClient graphClient, string mailId)
         {
             await graphClient.Me.Messages[mailId].Request().DeleteAsync();
         }
@@ -216,7 +252,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="mailId"></param>
         /// <returns></returns>
-        private static async Task<Message> GetMessageAsync(IGraphServiceClient graphClient, string mailId)
+        private static async Task<Message> GetMessageAsync(GraphServiceClient graphClient, string mailId)
         {
             return await graphClient.Me.Messages[mailId].Request().GetAsync();
         }

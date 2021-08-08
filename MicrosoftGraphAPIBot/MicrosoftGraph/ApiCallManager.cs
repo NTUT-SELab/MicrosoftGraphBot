@@ -126,7 +126,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         {
             try
             {
-                IGraphServiceClient graphClient = DefaultGraphApi.GetGraphServiceClient(token);
+                GraphServiceClient graphClient = DefaultGraphApi.GetGraphServiceClient(token);
                 ApiController apiController = serviceProvider.GetService(typeof(ApiController)) as ApiController;
                 var results = await apiController.RunAsync(graphClient, authName);
                 IEnumerable<string> resultMessages = results.Select(result => string.Format("授權名稱: {0}, 服務: {1}, Api模組: {2}, 結果: {3}", authName, result.Item1, result.Item2, result.Item3 ? "Success" : "Fail"));

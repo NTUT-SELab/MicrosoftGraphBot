@@ -17,7 +17,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         private readonly ILogger logger;
         private readonly IConfiguration configuration;
         private readonly GraphApi[] graphApis;
-        private IGraphServiceClient graphClient;
+        private GraphServiceClient graphClient;
         private string authName;
 
         public ApiController(ILogger<ApiController> logger, IConfiguration configuration, IEnumerable<GraphApi> graphApis) => 
@@ -31,7 +31,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"> The object of GraphServiceClient. </param>
         /// <param name="authName"> token 別名 </param>
         /// <returns> (api service class name, method name, result) 的集合 </returns>
-        public async Task<IReadOnlyList<(string, string, bool)>> RunAsync(IGraphServiceClient graphClient, string authName)
+        public async Task<IReadOnlyList<(string, string, bool)>> RunAsync(GraphServiceClient graphClient, string authName)
         {
             this.graphClient = graphClient;
             this.authName = authName;
@@ -80,11 +80,11 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     /// </summary>
     public abstract class GraphApi
     {
-        protected IGraphServiceClient graphClient;
+        protected GraphServiceClient graphClient;
         protected readonly ILogger logger;
         private readonly IConfiguration configuration;
 
-        protected GraphApi(IGraphServiceClient graphClient) => this.graphClient = graphClient;
+        protected GraphApi(GraphServiceClient graphClient) => this.graphClient = graphClient;
 
         protected GraphApi(ILogger logger, IConfiguration configuration) => 
             (this.logger, this.configuration) = (logger, configuration);
@@ -94,7 +94,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"> The object of GraphServiceClient. </param>
         /// <returns> (method name, result) 的集合 </returns>
-        public async IAsyncEnumerable<(string, bool)> RunAsync(IGraphServiceClient graphClient)
+        public async IAsyncEnumerable<(string, bool)> RunAsync(GraphServiceClient graphClient)
         {
             this.graphClient = graphClient;
 

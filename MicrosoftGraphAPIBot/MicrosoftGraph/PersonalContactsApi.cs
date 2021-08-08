@@ -14,7 +14,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
     {
         public const string Scope = "Contacts.Read Contacts.ReadWrite";
 
-        public PersonalContactsApi(IGraphServiceClient graphClient) : base(graphClient)
+        public PersonalContactsApi(GraphServiceClient graphClient) : base(graphClient)
         {
         }
 
@@ -30,19 +30,31 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallCreateContactAsync()
         {
+            Contact contact = null;
             try
             {
-                Contact contact = await CreateContact(graphClient);
+                contact = await CreateContact(graphClient);
                 Contact contact1 = await GetContact(graphClient, contact.Id);
                 Trace.Assert(contact.DisplayName == contact1.DisplayName);
 
-                await DeleteContact(graphClient, contact.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (contact != null)
+                    try
+                    {
+                        await DeleteContact(graphClient, contact.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -54,9 +66,10 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <returns></returns>
         public async Task<bool> CallUpdateContactAsync()
         {
+            Contact contact = null;
             try
             {
-                Contact contact = await CreateContact(graphClient);
+                contact = await CreateContact(graphClient);
                 Contact contact1 = await GetContact(graphClient, contact.Id);
                 Trace.Assert(contact.DisplayName == contact1.DisplayName);
 
@@ -64,13 +77,24 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
                 contact1 = await GetContact(graphClient, contact.Id);
                 Trace.Assert(updateContact.DisplayName == contact1.DisplayName);
 
-                await DeleteContact(graphClient, contact.Id);
                 return true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex.Message);
                 return false;
+            }
+            finally
+            {
+                if (contact != null)
+                    try
+                    {
+                        await DeleteContact(graphClient, contact.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex.Message);
+                    }
             }
         }
 
@@ -80,7 +104,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="Id"></param>
         /// <returns></returns>
-        public static async Task<Contact> GetContact(IGraphServiceClient graphClient, string Id)
+        public static async Task<Contact> GetContact(GraphServiceClient graphClient, string Id)
         {
             return await graphClient.Me.Contacts[Id]
                 .Request()
@@ -93,7 +117,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// </summary>
         /// <param name="graphClient"></param>
         /// <returns></returns>
-        public static async Task<Contact> CreateContact(IGraphServiceClient graphClient)
+        public static async Task<Contact> CreateContact(GraphServiceClient graphClient)
         {
             var contact = await graphClient.Me.Contacts
                 .Request()
@@ -114,7 +138,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="Id"></param>
         /// <returns></returns>
-        public static async Task DeleteContact(IGraphServiceClient graphClient, string Id)
+        public static async Task DeleteContact(GraphServiceClient graphClient, string Id)
         {
             await graphClient.Me.Contacts[Id]
                 .Request()
@@ -127,7 +151,7 @@ namespace MicrosoftGraphAPIBot.MicrosoftGraph
         /// <param name="graphClient"></param>
         /// <param name="Id"></param>
         /// <returns></returns>
-        public static async Task<Contact> UpdateContact(IGraphServiceClient graphClient, string Id)
+        public static async Task<Contact> UpdateContact(GraphServiceClient graphClient, string Id)
         {
             var contact = await graphClient.Me.Contacts[Id]
                 .Request()

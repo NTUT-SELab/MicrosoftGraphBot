@@ -12,7 +12,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class ApiControllerTests
     {
-        private readonly IGraphServiceClient graphClient;
+        private readonly GraphServiceClient graphClient;
         private readonly ServiceCollection services;
 
         public ApiControllerTests()

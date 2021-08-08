@@ -11,7 +11,7 @@ namespace MicrosoftGraphBotTests
     [TestClass]
     public class OutlookApiTests
     {
-        private readonly IGraphServiceClient graphClient;
+        private readonly GraphServiceClient graphClient;
 
         public OutlookApiTests()
         {
