@@ -1,23 +1,23 @@
 steps:
 - template: build.yml
 
-- task: DotNetCoreCLI@2
-  displayName: Test
-  inputs:
-    command: test
-    projects: '**/*Tests/*.csproj'
-    arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:ExcludeByFile="**/Migrations/*.cs%2c**/*DbContext.cs%2c**/*Service.cs%2c**/Program.cs%2c**/Startup.cs%2c**/Telegram/**Controller.cs" /p:CoverletOutputFormat=opencover /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
-    publishTestResults: true
+# - task: DotNetCoreCLI@2
+#   displayName: Test
+#   inputs:
+#     command: test
+#     projects: '**/*Tests/*.csproj'
+#     arguments: '--no-build --configuration $(buildConfiguration) /p:CollectCoverage=true /p:ExcludeByFile="**/Migrations/*.cs%2c**/*DbContext.cs%2c**/*Service.cs%2c**/Program.cs%2c**/Startup.cs%2c**/Telegram/**Controller.cs" /p:CoverletOutputFormat=opencover /p:CoverletOutput=$(Build.SourcesDirectory)/TestResults/Coverage/'
+#     publishTestResults: true
 
-- script: |
-    dotnet tool install dotnet-reportgenerator-globaltool --tool-path .
-    .\reportgenerator.exe "-reports:$(Build.SourcesDirectory)/TestResults/Coverage/coverage.opencover.xml" "-targetdir:coverage/Cobertura" "-reporttypes:Cobertura;HTMLInline;HTMLChart"
-  condition: eq( variables['Agent.OS'], 'Windows_NT' )
-  displayName: Run Reportgenerator on Windows
+# - script: |
+#     dotnet tool install dotnet-reportgenerator-globaltool --tool-path .
+#     .\reportgenerator.exe "-reports:$(Build.SourcesDirectory)/TestResults/Coverage/coverage.opencover.xml" "-targetdir:coverage/Cobertura" "-reporttypes:Cobertura;HTMLInline;HTMLChart"
+#   condition: eq( variables['Agent.OS'], 'Windows_NT' )
+#   displayName: Run Reportgenerator on Windows
 
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage report'
-  inputs:
-    summaryFileLocation: $(Build.SourcesDirectory)/coverage/Cobertura/Cobertura.xml
-    reportDirectory: $(Build.SourcesDirectory)/coverage/Cobertura
-    codecoverageTool: cobertura
+# - task: PublishCodeCoverageResults@1
+#   displayName: 'Publish code coverage report'
+#   inputs:
+#     summaryFileLocation: $(Build.SourcesDirectory)/coverage/Cobertura/Cobertura.xml
+#     reportDirectory: $(Build.SourcesDirectory)/coverage/Cobertura
+#     codecoverageTool: cobertura
